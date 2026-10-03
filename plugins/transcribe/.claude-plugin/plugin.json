@@ -1,0 +1,6 @@
+{
+  "name": "transcribe",
+  "description": "Transcribe audio o video a texto con separación de hablantes (ElevenLabs Scribe v2, alternativa local con mlx_whisper).",
+  "author": { "name": "Daniel Ramírez" },
+  "license": "MIT"
+}

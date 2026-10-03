@@ -1,0 +1,20 @@
+{
+  "name": "ramo-plugins",
+  "owner": { "name": "Daniel Ramírez" },
+  "metadata": { "description": "Skills de Ramo: transcripción con ElevenLabs Scribe, y /watch para preguntarle cosas a un video." },
+  "plugins": [
+    {
+      "name": "transcribe",
+      "description": "Transcribe audio o video a texto con separación de hablantes (ElevenLabs Scribe v2).",
+      "source": "./plugins/transcribe",
+      "category": "productivity"
+    },
+    {
+      "name": "watch",
+      "description": "Mira un video (URL o archivo) y responde preguntas sobre él. Plugin de Bradley Bonanno.",
+      "source": { "source": "github", "repo": "bradautomates/claude-video" },
+      "homepage": "https://github.com/bradautomates/claude-video",
+      "category": "productivity"
+    }
+  ]
+}
