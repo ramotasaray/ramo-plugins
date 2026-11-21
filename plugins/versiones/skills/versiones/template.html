@@ -1,0 +1,2667 @@
+<meta charset="utf-8">
+<title>Versiones</title>
+<style>
+/* ============ tokens ============ */
+:root{
+  --bg-canvas:#FFFFFF; --bg-raised:#F7F7F8; --bg-hover:#F0F0F1; --bg-selection:#D6E4FF;
+  --text-primary:#1A1A1A; --text-secondary:#6B6B70; --text-tertiary:#A0A0A6;
+  --border-subtle:#E8E8EA; --border-strong:#D4D4D8;
+  --accent:#2563EB; --accent-hover:#1D4ED8; --accent-soft:#EFF6FF; --accent-ink:#FFFFFF;
+  --warn:#D97706; --danger:#DC2626; --caret:#1A1A1A;
+  --shadow-popover:0 0 0 1px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.06),0 12px 32px rgba(0,0,0,.08);
+
+  --font-editor:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  --font-ui:var(--font-editor);
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --text-editor-size:18px; --text-editor-line:1.65; --text-editor-spacing:-0.011em;
+  --text-ui-size:14px; --text-meta-size:12px;
+
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px;
+  --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px;
+  --radius-sm:6px; --radius-md:8px; --radius-lg:12px; --radius-full:999px;
+  --ease-out:cubic-bezier(.16,1,.3,1); --ease-inout:cubic-bezier(.32,.72,0,1);
+  --dur-instant:80ms; --dur-fast:150ms; --dur-base:200ms;
+
+  --col:680px;
+  --wide:1180px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg-canvas:#0E0E10; --bg-raised:#18181B; --bg-hover:#232327; --bg-selection:#1E3A5F;
+    --text-primary:#EDEDEF; --text-secondary:#9B9BA3; --text-tertiary:#6A6A73;
+    --border-subtle:#232327; --border-strong:#33333A;
+    --accent:#60A5FA; --accent-hover:#93C5FD; --accent-soft:#16233A; --accent-ink:#0E0E10;
+    --warn:#F59E0B; --danger:#F87171; --caret:#EDEDEF;
+    --shadow-popover:0 0 0 1px rgba(255,255,255,.06),0 8px 24px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg-canvas:#0E0E10; --bg-raised:#18181B; --bg-hover:#232327; --bg-selection:#1E3A5F;
+  --text-primary:#EDEDEF; --text-secondary:#9B9BA3; --text-tertiary:#6A6A73;
+  --border-subtle:#232327; --border-strong:#33333A;
+  --accent:#60A5FA; --accent-hover:#93C5FD; --accent-soft:#16233A; --accent-ink:#0E0E10;
+  --warn:#F59E0B; --danger:#F87171; --caret:#EDEDEF;
+  --shadow-popover:0 0 0 1px rgba(255,255,255,.06),0 8px 24px rgba(0,0,0,.5);
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+*{box-sizing:border-box}
+/* Los elementos de la barra se crean una vez y se prenden con `hidden`. Sin esto, un
+   `display:flex` propio le gana a la regla del navegador y el elemento se ve igual. */
+[hidden]{display:none!important}
+body{
+  margin:0;background:var(--bg-canvas);color:var(--text-primary);
+  font-family:var(--font-ui);font-size:var(--text-ui-size);line-height:1.45;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  padding-bottom:var(--space-16);
+}
+::selection{background:var(--bg-selection)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--radius-sm)}
+a{color:var(--accent)}
+
+/* ============ header ============ */
+/* La fila de borradores y la cabecera van pegadas arriba juntas: pedido del usuario el
+   2026-10-13, para cambiar de borrador sin volver a subir. */
+.cabeza{position:sticky;top:0;z-index:40;background:var(--bg-canvas)}
+html{scroll-padding-top:112px}
+html:has(.thread:not([hidden])){scroll-padding-top:160px}
+.top{background:var(--bg-canvas);border-bottom:1px solid transparent;
+     transition:border-color var(--dur-fast) var(--ease-out)}
+.top.is-scrolled{border-bottom-color:var(--border-subtle)}
+.top-in{max-width:var(--wide);margin-inline:auto;height:56px;display:flex;align-items:center;
+        gap:var(--space-3);padding-inline:var(--space-6)}
+.crumb{display:flex;gap:var(--space-3);min-width:0;font-size:var(--text-meta-size);
+       color:var(--text-tertiary);font-family:var(--font-mono);white-space:nowrap;overflow:hidden}
+.crumb span{overflow:hidden;text-overflow:ellipsis}
+.crumb span+span::before{content:"·";margin-right:var(--space-3);color:var(--border-strong)}
+.grow{flex:1}
+.dbstate{font-size:var(--text-meta-size);color:var(--text-tertiary);min-width:112px;text-align:right;
+         font-variant-numeric:tabular-nums}
+.dbstate.is-bad{color:var(--warn)}
+.icon{width:28px;height:28px;display:grid;place-items:center;border:0;background:none;padding:0;
+      border-radius:var(--radius-md);color:var(--text-secondary);opacity:.55;cursor:pointer;
+      transition:opacity var(--dur-instant),background var(--dur-instant)}
+.icon:hover{opacity:1;background:var(--bg-hover)}
+.icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;
+          stroke-linecap:round;stroke-linejoin:round}
+
+/* ============ shell ============ */
+.shell{max-width:var(--wide);margin-inline:auto;padding:var(--space-10) var(--space-6) 0}
+.intro{max-width:var(--col)}
+h1{font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.02em;margin:0 0 var(--space-2)}
+.sub{margin:0;color:var(--text-secondary);font-size:var(--text-ui-size)}
+
+/* pestañas de borradores, arriba de todo */
+.drafts{display:flex;gap:var(--space-1);align-items:center;flex-wrap:wrap;
+        padding:var(--space-2) var(--space-4);background:var(--bg-raised);
+        border-bottom:1px solid var(--border-subtle)}
+.dtab{display:inline-flex;align-items:center;gap:var(--space-1);border:1px solid transparent;
+      border-radius:var(--radius-md);padding:3px var(--space-2) 3px var(--space-3);font-size:12px}
+.dtab a{color:var(--text-secondary);text-decoration:none;white-space:nowrap}
+.dtab:hover{background:var(--bg-hover)}
+.dtab:hover a{color:var(--text-primary)}
+.dtab[aria-current="page"]{background:var(--bg-canvas);border-color:var(--border-subtle)}
+.dtab[aria-current="page"] a{color:var(--text-primary);font-weight:600}
+.dtab{flex-shrink:0}
+/* Borrador que llego mientras el usuario trabajaba en otro: la pagina no lo abre sola. */
+.dtab .nuevo{width:6px;height:6px;border-radius:var(--radius-full);background:var(--accent)}
+.dtab .x{opacity:0;border:0;background:none;color:inherit;cursor:pointer;font:inherit;
+         font-size:15px;line-height:1;padding:0 2px;transition:opacity var(--dur-instant)}
+.dtab:hover .x,.dtab[aria-current="page"] .x{opacity:.45}
+.dtab .x:hover{opacity:1}
+
+/* pestañas de mensajes */
+/* Van dentro de .cabeza, pegadas arriba con la cabecera: pedido del usuario el 2026-11-05,
+   para cambiar de mensaje del hilo sin volver a subir. */
+.thread{display:flex;gap:var(--space-1);flex-wrap:wrap;background:var(--bg-canvas);
+        padding:var(--space-2) max(var(--space-6), calc((100% - var(--wide)) / 2 + var(--space-6)));
+        border-bottom:1px solid transparent;transition:border-color var(--dur-fast) var(--ease-out)}
+.cabeza:has(.thread:not([hidden])) .top{border-bottom-color:transparent}
+.cabeza:has(.top.is-scrolled) .thread{border-bottom-color:var(--border-subtle)}
+.tab{display:inline-flex;align-items:center;gap:var(--space-2);border:1px solid var(--border-subtle);
+     background:var(--bg-canvas);color:var(--text-secondary);border-radius:var(--radius-full);
+     padding:6px var(--space-4);font:inherit;font-size:13px;cursor:pointer;
+     transition:background var(--dur-instant),color var(--dur-instant),border-color var(--dur-instant)}
+.tab:hover{background:var(--bg-hover)}
+.tab[aria-selected="true"]{background:var(--text-primary);border-color:var(--text-primary);color:var(--bg-canvas)}
+.tab .dot{width:6px;height:6px;border-radius:var(--radius-full);background:var(--warn)}
+.tab .tick{color:var(--accent);font-size:11px}
+.tab[aria-selected="true"] .tick{color:var(--bg-canvas)}
+
+.deck{display:flex;align-items:center;gap:var(--space-4);margin:var(--space-8) 0 var(--space-6);
+      flex-wrap:wrap}
+.modes{display:inline-flex;background:var(--bg-raised);border-radius:var(--radius-md);padding:2px}
+.modes button{border:0;background:none;font:inherit;font-size:13px;color:var(--text-secondary);
+              padding:5px var(--space-3);border-radius:var(--radius-sm);cursor:pointer}
+.modes button[aria-pressed="true"]{background:var(--bg-canvas);color:var(--text-primary);
+                                   box-shadow:0 0 0 1px var(--border-subtle)}
+.counts{display:flex;gap:var(--space-4);list-style:none;margin:0;padding:0;
+        font-size:var(--text-meta-size);color:var(--text-tertiary);font-variant-numeric:tabular-nums}
+.counts b{font-weight:500;color:var(--text-secondary)}
+.pending-head{display:flex;align-items:center;gap:var(--space-2);margin:0;
+              font-size:var(--text-meta-size);color:var(--warn)}
+.pending-head b{display:grid;place-items:center;min-width:18px;height:18px;padding:0 5px;
+                border-radius:var(--radius-full);background:var(--warn);color:var(--bg-canvas);font-size:11px}
+
+/* ============ filas ============ */
+.rows>section{padding:var(--space-8) 0;border-top:1px solid var(--border-subtle)}
+.rows>section:first-child{border-top:0;padding-top:0}
+.row-head{display:flex;align-items:baseline;gap:var(--space-3);margin-bottom:var(--space-4);flex-wrap:wrap}
+.row-n{font-family:var(--font-mono);font-size:var(--text-meta-size);color:var(--text-tertiary)}
+.row-head h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.row-job{margin:0;color:var(--text-secondary);font-size:var(--text-meta-size);
+         overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46ch}
+.chips{display:flex;gap:var(--space-2);margin-left:auto}
+.chip{font-size:11px;padding:2px var(--space-2);border-radius:var(--radius-sm);
+      background:var(--accent-soft);color:var(--accent)}
+.chip.is-note{background:transparent;color:var(--warn);box-shadow:inset 0 0 0 1px currentColor}
+
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);align-items:start}
+.opts.has-drop{grid-template-columns:repeat(3,1fr) 128px}
+.opt{border:1px solid var(--border-subtle);border-radius:var(--radius-lg);padding:var(--space-4);
+     background:var(--bg-canvas);cursor:pointer;
+     transition:border-color var(--dur-instant),background var(--dur-instant)}
+.opt:hover{background:var(--bg-raised)}
+.opt[aria-pressed="true"]{border-color:var(--border-strong);background:var(--bg-canvas);cursor:default}
+.opt.is-drop{display:flex;flex-direction:column}
+.opt-top{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-3)}
+.check{width:14px;height:14px;border-radius:var(--radius-full);border:1.5px solid var(--border-strong);flex:none;
+       transition:border-color var(--dur-instant),background var(--dur-instant)}
+.opt[aria-pressed="true"] .check{border-color:var(--accent);background:var(--accent);
+     box-shadow:inset 0 0 0 2.5px var(--bg-canvas)}
+.tag{font-size:var(--text-meta-size);font-weight:600;letter-spacing:.02em;text-transform:uppercase;
+     color:var(--text-secondary)}
+.opt[aria-pressed="true"] .tag{color:var(--text-primary)}
+.rec{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);
+     background:var(--accent-soft);padding:1px 5px;border-radius:var(--radius-sm)}
+.wc{margin-left:auto;font-size:var(--text-meta-size);color:var(--text-tertiary);
+    font-variant-numeric:tabular-nums}
+
+.txt{margin:0;font-family:var(--font-editor);font-size:16px;line-height:1.55;
+     letter-spacing:var(--text-editor-spacing);color:var(--text-secondary);white-space:pre-wrap;
+     word-break:break-word}
+.opt[aria-pressed="true"] .txt{color:var(--text-primary)}
+.opt[aria-pressed="true"] .txt{caret-color:var(--caret);outline:none;cursor:text}
+.txt:focus{outline:none}
+.txt ul,.txt ol{margin:.2em 0 .2em;padding-left:1.35em}
+.txt li{margin:0}
+.txt code{font-family:var(--font-mono);font-size:.9em;background:var(--bg-raised);
+          padding:.15em .35em;border-radius:var(--radius-sm)}
+.txt strong{font-weight:650}
+.note{margin:var(--space-3) 0 0;font-size:var(--text-meta-size);line-height:1.45;color:var(--text-secondary)}
+.opt.is-drop .txt{color:var(--text-tertiary);font-size:13px}
+
+.row-foot{display:flex;align-items:center;gap:var(--space-4);margin-top:var(--space-3);flex-wrap:wrap}
+.lnk{border:0;background:none;padding:0;font:inherit;font-size:var(--text-meta-size);
+     color:var(--text-secondary);cursor:pointer;text-decoration:underline;
+     text-decoration-color:var(--border-strong);text-underline-offset:3px}
+.lnk:hover{color:var(--text-primary)}
+.foot-hint{font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);margin-left:auto}
+.fmt-hint{font-size:11px;color:var(--text-tertiary);opacity:0;transition:opacity var(--dur-fast) var(--ease-out)}
+.fmt-hint.is-on{opacity:1}
+.fmt-hint b{font-weight:600;color:var(--text-secondary)}
+
+.notebox{margin-top:var(--space-4);border-left:2px solid var(--warn);padding:var(--space-1) 0 var(--space-1) var(--space-4)}
+.notebox label{display:block;font-size:var(--text-meta-size);font-weight:600;color:var(--warn)}
+.notebox p{margin:2px 0 var(--space-2);font-size:var(--text-meta-size);color:var(--text-secondary)}
+textarea{width:100%;max-width:var(--col);font:inherit;font-size:var(--text-ui-size);color:var(--text-primary);
+         background:var(--bg-canvas);border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+         padding:var(--space-2) var(--space-3);resize:vertical}
+textarea:focus{outline:none;border-color:var(--border-strong)}
+textarea::placeholder{color:var(--text-tertiary)}
+
+/* ============ leer las tres ============ */
+.fulls{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-6)}
+.full h3{margin:0 0 var(--space-3);font-size:var(--text-meta-size);text-transform:uppercase;
+         letter-spacing:.04em;color:var(--text-secondary);display:flex;gap:var(--space-2)}
+.full h3 em{font-style:normal;color:var(--text-tertiary);font-weight:400}
+.full .body{font-family:var(--font-editor);font-size:15px;line-height:1.6;color:var(--text-secondary)}
+.full .body p{margin:0 0 .85em}
+
+/* ============ armado ============ */
+.assembled{max-width:var(--col);margin:var(--space-16) 0 0;border-top:1px solid var(--border-subtle);
+           padding-top:var(--space-8)}
+.assembled h2{margin:0 0 var(--space-2);font-size:15px;font-weight:600}
+.letter{border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden}
+.letter .meta{display:flex;flex-direction:column;gap:2px;padding:var(--space-3) var(--space-5);
+              background:var(--bg-raised);font-size:var(--text-meta-size);color:var(--text-secondary);
+              font-family:var(--font-mono)}
+.letter .body{padding:var(--space-6) var(--space-5);font-family:var(--font-editor);
+              font-size:var(--text-editor-size);line-height:var(--text-editor-line);
+              letter-spacing:var(--text-editor-spacing)}
+.letter .body p{margin:0 0 .85em}
+.letter .body .gap{height:.85em}
+.letter .body ul+.gap,.letter .body ol+.gap{display:none}
+.letter .body p:last-child{margin-bottom:0}
+.letter .body ul,.letter .body ol{margin:0 0 .85em;padding-left:1.35em}
+.letter .body code{font-family:var(--font-mono);font-size:.9em;background:var(--bg-raised);
+                   padding:.15em .35em;border-radius:var(--radius-sm)}
+/* Lo que sale se edita por seccion: cada .seg es su propia caja editable, asi una seleccion
+   nunca cruza dos secciones. Una seccion pegada a la anterior corre en el mismo parrafo: las
+   dos cajas pasan a inline y la costura (ultima linea de una, primera de la otra) queda en un
+   mismo renglon. */
+.letter .body .seg{outline:none;border-radius:var(--radius-sm);transition:background var(--dur-fast) var(--ease-out)}
+.letter .body .seg:hover{background:var(--bg-hover)}
+.letter .body .seg:focus{background:var(--bg-raised)}
+.letter .body .seg>:last-child{margin-bottom:0}
+.letter .body .seg.pegada,.letter .body .seg.pega-sig{display:inline}
+.letter .body .seg.pega-sig>:last-child,.letter .body .seg.pegada>:first-child{display:inline}
+.letter .body .seg.pegada::before{content:" "}
+.letter .body .mk{border-bottom:1px dotted var(--border-strong)}
+.letter .body .costura{position:relative;height:.85em}
+.letter .body .costura[hidden],.letter .body .costura button[hidden]{display:none}
+.letter .body .costura button{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--bg-canvas);
+  color:var(--text-secondary);font:inherit;font-family:var(--font-ui, inherit);font-size:11px;
+  line-height:1;padding:3px var(--space-2);cursor:pointer;opacity:0;
+  transition:opacity var(--dur-fast) var(--ease-out)}
+.letter .body .costura button::after{content:"Unir"}
+.letter .body .costura:hover button,.letter .body .costura button:focus-visible{opacity:1}
+.out-hint{margin:0 0 var(--space-3);font-size:var(--text-meta-size);color:var(--text-tertiary)}
+.attach{margin-top:var(--space-4);font-size:var(--text-meta-size);color:var(--text-secondary)}
+.attach h3{margin:0 0 var(--space-2);font-size:var(--text-meta-size);text-transform:uppercase;
+           letter-spacing:.04em;color:var(--text-tertiary)}
+.attach ul{margin:0;padding-left:1.1em}
+.attach .why{color:var(--text-tertiary)}
+.attach .foot{margin:var(--space-2) 0 0;color:var(--text-tertiary)}
+.general{margin-top:var(--space-8)}
+.general label{display:block;font-size:var(--text-meta-size);font-weight:600;margin-bottom:2px}
+.general p{margin:0 0 var(--space-2);font-size:var(--text-meta-size);color:var(--text-secondary)}
+
+/* ============ barra ============ */
+.bar{position:sticky;bottom:0;z-index:40;margin-top:var(--space-12);
+     background:color-mix(in srgb,var(--bg-canvas) 85%,transparent);
+     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+     border-top:1px solid var(--border-subtle)}
+.bar-in{max-width:var(--wide);margin-inline:auto;min-height:56px;display:flex;align-items:center;
+        gap:var(--space-4);padding:var(--space-2) var(--space-6);flex-wrap:wrap}
+.tally{font-size:var(--text-meta-size);color:var(--text-secondary);font-variant-numeric:tabular-nums}
+.tally b{font-size:var(--text-ui-size);color:var(--text-primary)}
+.delta{color:var(--text-tertiary)}
+.recipe{display:none;font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);
+        overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:34ch}
+.pending-bar{font-size:var(--text-meta-size);color:var(--warn)}
+.bar-acts{margin-left:auto;display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.btn{border:1px solid var(--border-subtle);background:var(--bg-canvas);color:var(--text-secondary);
+     font:inherit;font-size:13px;padding:7px var(--space-4);border-radius:var(--radius-md);cursor:pointer;
+     transition:background var(--dur-instant),color var(--dur-instant),border-color var(--dur-instant)}
+.btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);color:var(--accent-ink)}
+.btn.ghost-done{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+
+/* ============ hoja de envío ============ */
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.2)}
+.sheet{position:fixed;z-index:61;right:var(--space-6);bottom:76px;width:320px;
+       background:var(--bg-raised);border-radius:var(--radius-lg);box-shadow:var(--shadow-popover);
+       padding:var(--space-2);animation:pop var(--dur-fast) var(--ease-out)}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.sheet h3{margin:var(--space-2) var(--space-3) var(--space-2);font-size:var(--text-meta-size);
+          text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);font-weight:600}
+.opt-row{display:flex;align-items:center;gap:var(--space-3);width:100%;border:0;background:none;
+         font:inherit;text-align:left;padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);
+         cursor:pointer;color:var(--text-primary)}
+.opt-row:hover,.opt-row.is-on{background:var(--bg-hover)}
+.opt-row .ic{width:20px;display:grid;place-items:center;color:var(--text-secondary)}
+.opt-row .ic svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;
+                 stroke-linecap:round;stroke-linejoin:round}
+.opt-row small{display:block;color:var(--text-tertiary);font-size:var(--text-meta-size)}
+.opt-row.opt-static{cursor:default}
+.opt-row.sug{box-shadow:inset 2px 0 0 var(--accent)}
+.opt-row.sug .ic{color:var(--accent)}
+.opt-row.sug small.warn{color:var(--warn)}
+.opt-row.opt-static:hover{background:none}
+.horas{display:flex;gap:var(--space-1);margin-left:auto}
+.horas button{font:inherit;font-size:12px;font-weight:600;line-height:1;cursor:pointer;
+              color:var(--text-secondary);background:var(--bg-canvas);
+              border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:5px 7px}
+.horas button:hover{background:var(--bg-hover);color:var(--text-primary)}
+.horas button.def{border-color:var(--accent);color:var(--accent)}
+.when{display:flex;gap:var(--space-2);padding:0 var(--space-3) var(--space-2)}
+.when input{flex:1;min-width:0;font:inherit;font-size:13px;color:var(--text-primary);
+            background:var(--bg-canvas);border:1px solid var(--border-subtle);
+            border-radius:var(--radius-md);padding:6px var(--space-2)}
+.pick{padding:var(--space-1) var(--space-3) var(--space-2)}
+.pick .lbl{font-size:var(--text-meta-size);color:var(--text-tertiary);margin:var(--space-2) 0 var(--space-1)}
+.chips{display:flex;flex-wrap:wrap;gap:var(--space-1)}
+.chips button{font:inherit;font-size:12px;font-weight:600;line-height:1;cursor:pointer;
+              color:var(--text-secondary);background:var(--bg-canvas);
+              border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:6px 8px}
+.chips button:hover:not(:disabled){background:var(--bg-hover);color:var(--text-primary)}
+.chips button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips button:disabled{opacity:.35;cursor:default}
+.resumen{margin:var(--space-2) var(--space-3) var(--space-1);font-size:13px;color:var(--text-primary)}
+.resumen small{display:block;color:var(--warn);font-size:var(--text-meta-size);margin-top:2px}
+.resumen.mal{color:var(--warn)}
+.sheet .go{margin:0 var(--space-1) var(--space-1);width:calc(100% - var(--space-2))}
+.sheet .cancel{color:var(--text-tertiary)}
+
+.sent{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-meta-size);
+      color:var(--accent);background:var(--accent-soft);padding:5px var(--space-3);
+      border-radius:var(--radius-full)}
+.sent .x{border:0;background:none;color:inherit;cursor:pointer;font:inherit;opacity:.7;padding:0 2px}
+.sent .x:hover{opacity:1}
+.sent.is-stale{color:var(--warn);background:transparent;box-shadow:inset 0 0 0 1px currentColor}
+#reset{margin-right:var(--space-3)}
+.ask{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-meta-size);
+     color:var(--text-secondary)}
+.ask .btn{padding:2px 10px}
+
+#confetti{position:fixed;inset:0;z-index:70;pointer-events:none}
+/* Pedir cambios: acuse sutil sobre el boton, el confeti queda para enviar y copiar */
+.btn.is-acuse{animation:acuse .7s cubic-bezier(.2,.8,.2,1)}
+@keyframes acuse{0%{transform:scale(.94);box-shadow:0 0 0 0 var(--accent)}45%{transform:scale(1.03)}100%{transform:scale(1);box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){.btn.is-acuse{animation:none}}
+
+/* ============ responsive ============ */
+@media (max-width:1023px){
+  .opts,.opts.has-drop{grid-template-columns:1fr}
+  .opt:not([aria-pressed="true"]) .txt{max-height:5.2em;overflow:hidden;
+       -webkit-mask-image:linear-gradient(#000 60%,transparent);mask-image:linear-gradient(#000 60%,transparent)}
+  .fulls{grid-template-columns:1fr}
+}
+@media (max-width:767px){
+  :root{--text-editor-size:17px}
+  .shell,.top-in,.bar-in{padding-inline:var(--space-5)}
+  .recipe{display:none}
+  .crumb span+span{display:none}
+  /* Una sola linea que se desliza de lado: con muchos borradores la fila pegada arriba
+     se comeria media pantalla del telefono. */
+  .drafts{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .drafts::-webkit-scrollbar{display:none}
+  .thread{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-inline:var(--space-5)}
+  .thread::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0}
+  .sheet{left:var(--space-4);right:var(--space-4);width:auto}
+}
+@media print{.top,.bar,.modes,.row-foot,.notebox,.thread,.drafts{display:none}}
+</style>
+
+<div class="cabeza">
+<nav class="drafts" id="drafts" hidden aria-label="Borradores abiertos"></nav>
+
+<header class="top" id="top">
+  <div class="top-in">
+    <span class="crumb" id="crumb"></span>
+    <span class="grow"></span>
+    <span class="dbstate" id="dbstate" aria-live="polite"></span>
+    <button type="button" class="icon" id="theme" title="Tema claro y oscuro (Cmd+Shift+L)" aria-label="Cambiar tema">
+      <svg id="theme-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+    </button>
+  </div>
+</header>
+
+<nav class="thread" id="thread" hidden aria-label="Mensajes del hilo"></nav>
+</div>
+
+<main class="shell">
+  <div class="intro">
+    <h1 id="titulo"></h1>
+    <p class="sub" id="sub"></p>
+  </div>
+
+  <div class="deck">
+    <div class="modes">
+      <button type="button" id="m-pick" aria-pressed="true">Elegir por sección</button>
+      <button type="button" id="m-read" aria-pressed="false">Leer las tres</button>
+    </div>
+    <ul class="counts" id="counts"></ul>
+    <p class="pending-head" id="pending-head" hidden><b></b><span></span></p>
+  </div>
+
+  <div class="rows" id="rows"></div>
+  <div class="fulls" id="fulls" hidden></div>
+
+  <section class="assembled">
+    <h2>Lo que sale</h2>
+    <p class="out-hint">Se edita aquí mismo y el ajuste vuelve a su sección. Borrar al inicio de una sección la pega a la anterior; Enter ahí la separa.</p>
+    <div class="letter">
+      <div class="meta" id="meta"></div>
+      <div class="body" id="out"></div>
+    </div>
+    <div class="attach" id="attach" hidden>
+      <h3>Adjuntos</h3>
+      <ul id="attach-list"></ul>
+      <p class="foot">Los adjuntos no pasan por esta página. Claude los pone al armar el envío.</p>
+    </div>
+    <div class="general">
+      <label for="nota-general">Nota general para Claude</label>
+      <p>Tono, orden, algo que falta, etc.</p>
+      <textarea id="nota-general" rows="2" placeholder="Vacío = nada pendiente."></textarea>
+    </div>
+  </section>
+</main>
+
+<footer class="bar">
+  <div class="bar-in">
+    <span class="tally"><b id="tally">0</b> palabras <span class="delta" id="delta"></span></span>
+    <span class="pending-bar" id="pending-bar" hidden></span>
+    <span class="recipe" id="recipe"></span>
+    <span class="grow"></span>
+    <div class="bar-acts" id="bar-acts">
+      <button type="button" class="btn" id="reset">Volver a lo recomendado</button>
+      <button type="button" class="btn" id="copy">Copiar</button>
+      <button type="button" class="btn primary" id="primary">Listo</button>
+    </div>
+  </div>
+</footer>
+
+<canvas id="confetti" hidden></canvas>
+
+<script id="draft" type="application/json"></script>
+<script id="boot" data-defecto="__DEFECTO__">
+(function(){
+  "use strict";
+  /* El borrador ya no viaja adentro del HTML: se pide como archivo vecino, d/<id>.json.
+     Asi la cascara queda en ~3 KB y el `read` del artifact deja de arrastrar el texto
+     entero en cada republicacion. OJO: con fetch la pagina NO corre abierta como
+     file://. Para probar local hay que servirla por HTTP. */
+  var DEFECTO = document.getElementById("boot").getAttribute("data-defecto") || "";
+  var CERRADOS = "versiones:cerrados";
+  /* Cada republicacion recarga el iframe SIN el ?d= (medido el 2026-10-13 con una sonda),
+     asi que la pagina abria el DEFECTO, o sea el borrador recien publicado, aunque el usuario
+     estuviera trabajando en otro. ABIERTO lo recuerda en sessionStorage: sobrevive a esa
+     recarga y muere al cerrar la pestaña del navegador, asi que el link abierto de cero
+     sigue abriendo el ultimo publicado. VISTOS (localStorage) marca con un punto los
+     borradores que todavia no abrio nunca. */
+  var ABIERTO = "versiones:abierto";
+  var VISTOS = "versiones:vistos";
+  var SCROLL = "versiones:scroll:";
+  function ssGet(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }
+  function ssSet(k, v){ try{ sessionStorage.setItem(k, v); }catch(e){} }
+  function leerVistos(){
+    try{ return JSON.parse(localStorage.getItem(VISTOS) || "null"); }catch(e){ return null; }
+  }
+  function guardarVistos(l){
+    try{ localStorage.setItem(VISTOS, JSON.stringify(l)); }catch(e){}
+  }
+  function marcarVisto(id){
+    var vs = leerVistos() || [];
+    if(vs.indexOf(id) < 0){ vs.push(id); guardarVistos(vs); }
+  }
+  var qs = new URLSearchParams(location.search);
+  var actual = qs.get("d") || DEFECTO;
+  var nav = document.getElementById("drafts");
+  var INDICE = {drafts: []};
+
+  function leerCerrados(){
+    try{ return JSON.parse(localStorage.getItem(CERRADOS) || "[]") || []; }catch(e){ return []; }
+  }
+  function guardarCerrados(l){
+    try{ localStorage.setItem(CERRADOS, JSON.stringify(l)); }catch(e){}
+  }
+  /* El borrador abierto siempre se muestra, aunque este cerrado: si el usuario llego
+     por su URL, esconderle el tab lo dejaria sin saber donde esta parado. */
+  function vivos(){
+    var cs = leerCerrados();
+    return (INDICE.drafts || []).filter(function(x){
+      return x.id === actual || cs.indexOf(x.id) < 0;
+    });
+  }
+  function conBase(fn){
+    if(!(window.claude && typeof window.claude.use === "function")) return;
+    window.claude.use("db").then(function(db){ if(db) fn(db); }, function(){});
+  }
+
+  /* Un borrador sin doc en la base necesita dos idas (update falla, despues set). Si la
+     pagina navega antes de la segunda, el cierre queda solo en este navegador: paso el
+     2026-09-28 con cuatro borradores. Por eso se espera la escritura, con tope de 3 s. */
+  function cerrarEnBase(id){
+    return new Promise(function(res){
+      if(!(window.claude && typeof window.claude.use === "function")) return res();
+      var tope = setTimeout(res, 3000);
+      function fin(){ clearTimeout(tope); res(); }
+      window.claude.use("db").then(function(db){
+        if(!db) return fin();
+        var ref = db.doc("drafts/" + id);
+        var dato = {cerrado:true, cerradoPor:"pagina", cerradoTs:new Date().toISOString()};
+        ref.update(dato).then(fin, function(e){
+          if(e && e.code === "invalid_argument") ref.set(dato).then(fin, fin);
+          else fin();
+        });
+      }, fin);
+    });
+  }
+
+  function cerrar(x){
+    var cs = leerCerrados();
+    if(cs.indexOf(x.id) < 0){ cs.push(x.id); guardarCerrados(cs); }
+    var escrito = cerrarEnBase(x.id);
+    if(x.id === actual){
+      var resto = vivos().filter(function(y){ return y.id !== actual; });
+      /* Si era el ultimo, "?vacio" en vez de "": sin parametro la pagina abriria
+         el DEFECTO, que puede ser justo el que se acaba de cerrar. */
+      escrito.then(function(){
+        location.search = resto.length ? "?d=" + encodeURIComponent(resto[0].id) : "?vacio=1";
+      });
+      return;
+    }
+    pintar();
+  }
+
+  /* Pedido del usuario el 2026-10-08: con un solo borrador la fila igual se muestra,
+     porque es la unica forma de llegar a su ✕ y dejar la pagina vacia. */
+  function pintar(){
+    var lista = vivos();
+    nav.textContent = "";
+    if(!lista.length){ nav.hidden = true; return; }
+    nav.hidden = false;
+    lista.forEach(function(x){
+      var cont = document.createElement("span");
+      cont.className = "dtab";
+      if(x.id === actual) cont.setAttribute("aria-current", "page");
+      var vs = leerVistos();
+      if(vs && vs.indexOf(x.id) < 0 && x.id !== actual){
+        var nuevo = document.createElement("span");
+        nuevo.className = "nuevo"; nuevo.title = "Nuevo: todavía no lo abriste";
+        cont.appendChild(nuevo);
+      }
+      var a = document.createElement("a");
+      a.href = "?d=" + encodeURIComponent(x.id);
+      a.textContent = x.tab || x.titulo || x.id;
+      a.title = x.titulo || x.id;
+      cont.appendChild(a);
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "x"; b.textContent = "\u00d7";
+      b.title = "Cerrar este borrador";
+      b.setAttribute("aria-label", "Cerrar " + (x.tab || x.id));
+      b.addEventListener("click", function(ev){ ev.preventDefault(); cerrar(x); });
+      cont.appendChild(b);
+      nav.appendChild(cont);
+    });
+  }
+
+  /* Un borrador cerrado desde otra sesion no esta en este localStorage.
+     La base lo sabe: se pregunta una vez y se cachea para el proximo arranque.
+     Devuelve una promesa con tope de 2 s, porque elegir() la espera. */
+  function reconciliar(){
+    return new Promise(function(res){
+      var tope = setTimeout(res, 2000);
+      function fin(){ clearTimeout(tope); res(); }
+      if(!(window.claude && typeof window.claude.use === "function")) return fin();
+      window.claude.use("db").then(function(db){
+        if(!db) return fin();
+        db.collection("drafts").get().then(function(snap){
+          var cs = leerCerrados(), cambio = false;
+          snap.docs.forEach(function(doc){
+            var v = doc.data() || {};
+            if(v.cerrado && cs.indexOf(doc.id) < 0){ cs.push(doc.id); cambio = true; }
+          });
+          if(cambio){ guardarCerrados(cs); pintar(); }
+          fin();
+        }, fin);
+      }, fin);
+    });
+  }
+
+  /* Todo cerrado: la pagina queda vacia en vez de mostrar un borrador ya mandado. */
+  function vacio(){
+    actual = "";
+    pintar();
+    var h = document.getElementById("titulo");
+    if(h) h.textContent = "No hay borradores abiertos";
+    document.title = "Versiones";
+    var p = document.getElementById("sub");
+    if(p) p.textContent = "Cerraste todos. El próximo que publique Claude aparece acá.";
+    var ocultar = document.querySelectorAll(".deck, .rows, .fulls, .assembled, #thread, footer.bar");
+    for(var i = 0; i < ocultar.length; i++) ocultar[i].hidden = true;
+    var css = document.createElement("style");
+    css.textContent = ".deck,.rows,.assembled,footer.bar{display:none!important}";
+    document.head.appendChild(css);
+  }
+
+  function cargar(id){
+    actual = id;
+    ssSet(ABIERTO, id);
+    marcarVisto(id);
+    pintar();
+    fetch("d/" + encodeURIComponent(id) + ".json")
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(dr){
+        document.getElementById("draft").textContent = JSON.stringify(dr);
+        var s = document.createElement("script");
+        s.src = "app.js";
+        /* Vuelve a la altura donde estaba en este borrador, en esta pestaña. Directo y no
+           con requestAnimationFrame: ese no corre con la pestaña en segundo plano, que es
+           justo cuando suele llegar una republicacion. */
+        s.onload = function(){
+          var y = +(ssGet(SCROLL + id) || 0);
+          if(y > 0) window.scrollTo(0, y);
+        };
+        document.body.appendChild(s);
+      })
+      .catch(function(){
+        var h = document.getElementById("titulo");
+        if(h) h.textContent = "No se pudo abrir este borrador";
+        var p = document.getElementById("sub");
+        if(p) p.textContent = "Falta d/" + id + ".json. Elegí otro borrador arriba, o pedile " +
+                              "a Claude que lo reconstruya.";
+        pintar();
+      });
+  }
+
+  /* Con ?d= explicito se abre ese, cerrado o no. Sin ?d= se abre el que esta pestaña tenia
+     abierto si sigue abierto; si no, el DEFECTO si sigue abierto; si no, el primero
+     abierto; si no queda ninguno, la pagina vacia. */
+  var pedido = qs.get("d");
+  var indiceListo = fetch("d/index.json").then(function(r){ return r.ok ? r.json() : {drafts:[]}; })
+    .catch(function(){ return {drafts:[]}; })
+    .then(function(ix){
+      INDICE = ix || {drafts:[]};
+      /* Primera vez en este navegador: nada se marca como nuevo. */
+      if(leerVistos() === null) guardarVistos((INDICE.drafts || []).map(function(x){ return x.id; }));
+    });
+
+  try{ history.scrollRestoration = "manual"; }catch(e){}
+  var tScroll = null;
+  window.addEventListener("scroll", function(){
+    if(!actual) return;
+    clearTimeout(tScroll);
+    tScroll = setTimeout(function(){ ssSet(SCROLL + actual, String(Math.round(window.scrollY))); }, 150);
+  }, {passive:true});
+
+  if(pedido){
+    cargar(pedido);
+    indiceListo.then(function(){ pintar(); if((INDICE.drafts || []).length > 1) reconciliar(); });
+  } else {
+    actual = "";
+    indiceListo.then(function(){
+      return reconciliar().then(function(){
+        var abiertos = vivos();
+        if(!abiertos.length) return vacio();
+        function buscar(id){ return abiertos.filter(function(x){ return x.id === id; })[0]; }
+        var elegido = buscar(ssGet(ABIERTO)) || buscar(DEFECTO) || abiertos[0];
+        cargar(elegido.id);
+      });
+    });
+  }
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  var DRAFT = JSON.parse(document.getElementById("draft").textContent);
+  var KEYS = ["completa","ajustada","minima"];
+  var LABEL = {completa:"Completa", ajustada:"Ajustada", minima:"Mínima", quitar:"Quitar"};
+  var SOLO = "__solo";
+  var CANAL = {
+    email:      {que:"correo",    eyebrow:"Correo",          manda:true},
+    whatsapp:   {que:"mensaje",   eyebrow:"WhatsApp",        manda:false},
+    teams:      {que:"mensaje",   eyebrow:"Microsoft Teams", manda:false},
+    dm:         {que:"mensaje",   eyebrow:"Mensaje directo", manda:false},
+    formulario: {que:"respuesta", eyebrow:"Formulario",      manda:false}
+  };
+  /* Ajustes del usuario (config.json), que build.py copia en cada borrador. Sin envio de
+     correo (envioEmail false: gws falta o el usuario no lo quiere) el email termina en
+     Copiar como los demas canales. Los defaults solo cubren un borrador construido sin
+     ajustes, y son los mismos de config.py. */
+  var AJUSTES = DRAFT.ajustes || {};
+  if(AJUSTES.envioEmail === false) CANAL.email.manda = false;
+  var MSGS = DRAFT.mensajes;
+  var HILO = !!DRAFT.hilo;
+  var STORE = "versiones:" + DRAFT.draftId;
+  var MARCADOR = /\{([A-Z0-9_]+)\}/g;
+  var ZW = /\u200b/g;
+
+  var msgById = {}, secById = {};
+  MSGS.forEach(function(m){
+    msgById[m.id] = m;
+    secById[m.id] = {};
+    m.secciones.forEach(function(s){ secById[m.id][s.id] = s; });
+  });
+  var activo = MSGS[0].id;
+  function MSG(){ return msgById[activo]; }
+  function C(){ return CANAL[MSG().canal] || CANAL.dm; }
+
+  /* ---------------- estado ---------------- */
+  /* sucio: secciones con texto bajado del DOM que todavia no fue a la base. */
+  var state = {}, general = {}, sucio = {};
+  MSGS.forEach(function(m){
+    state[m.id] = {};
+    m.secciones.forEach(function(s){
+      state[m.id][s.id] = {pick:s.recomendada, ediciones:{}, nota:"", unida:false};
+    });
+    general[m.id] = {nota:"", listo:false, envio:null};
+  });
+
+  function validPick(s, k){ return KEYS.indexOf(k) >= 0 || (k === "quitar" && s.opcional); }
+  /* Una edicion por version: el usuario puede ajustar la corta, pasarse a la completa, ajustarla
+     tambien, y volver a la corta sin perder nada. textoEditado/editadoDe siguen viajando a la
+     base como la edicion de la version elegida, para que registro.py y ENVIO.md no cambien.
+     Un doc viejo sin ediciones trae solo ese par. Si los dos vienen, el par manda: es lo que
+     corrige Claude desde el chat (paso 8 de ENVIO.md). */
+  function leerEdiciones(d){
+    var e = {};
+    if(d.ediciones && typeof d.ediciones === "object"){
+      KEYS.forEach(function(k){
+        if(typeof d.ediciones[k] === "string" && d.ediciones[k]) e[k] = d.ediciones[k];
+      });
+    }
+    if(typeof d.textoEditado === "string" && d.textoEditado && KEYS.indexOf(d.editadoDe) >= 0)
+      e[d.editadoDe] = d.textoEditado;
+    return e;
+  }
+
+  try{
+    var saved = JSON.parse(localStorage.getItem(STORE) || "null");
+    if(saved && saved.rev === DRAFT.rev && saved.mensajes){
+      MSGS.forEach(function(m){
+        var sm = saved.mensajes[m.id];
+        if(!sm) return;
+        m.secciones.forEach(function(s){
+          var d = sm.secciones && sm.secciones[s.id];
+          if(!d) return;
+          if(validPick(s, d.pick)) state[m.id][s.id].pick = d.pick;
+          state[m.id][s.id].ediciones = leerEdiciones(d);
+          state[m.id][s.id].nota = d.nota || "";
+          state[m.id][s.id].unida = !!d.unida;
+        });
+        general[m.id].nota = sm.nota || "";
+        general[m.id].listo = !!sm.listo;
+        general[m.id].envio = sm.envio || null;
+      });
+      if(saved.activo && msgById[saved.activo]) activo = saved.activo;
+    }
+  }catch(e){}
+
+  function saveLocal(){
+    try{
+      var ms = {};
+      MSGS.forEach(function(m){
+        var secs = {};
+        m.secciones.forEach(function(s){ secs[s.id] = state[m.id][s.id]; });
+        ms[m.id] = {secciones:secs, nota:general[m.id].nota, listo:general[m.id].listo,
+                    envio:general[m.id].envio};
+      });
+      localStorage.setItem(STORE, JSON.stringify({rev:DRAFT.rev, activo:activo, mensajes:ms}));
+    }catch(e){}
+  }
+
+  /* ---------------- markdown ---------------- */
+  function esc(t){
+    return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  var INLINE = [
+    {re:/\*\*(.+?)\*\*/g, tag:"strong"},
+    {re:/(^|[\s(¡¿"'])\*([^*\s](?:[^*]*[^*\s])?)\*/g, tag:"em", lead:true},
+    {re:/(^|[\s(¡¿"'])_([^_\s](?:[^_]*[^_\s])?)_/g, tag:"em", lead:true},
+    {re:/~~(.+?)~~/g, tag:"s"},
+    {re:/`([^`]+)`/g, tag:"code"}
+  ];
+  function inlineToHtml(t){
+    var h = esc(t);
+    INLINE.forEach(function(r){
+      h = h.replace(r.re, function(){
+        var a = arguments;
+        return r.lead ? a[1] + "<" + r.tag + ">" + a[2] + "</" + r.tag + ">"
+                      : "<" + r.tag + ">" + a[1] + "</" + r.tag + ">";
+      });
+    });
+    return h;
+  }
+  /* markdown -> html de bloques. Cada linea es un bloque; las listas se agrupan. */
+  function mdToHtml(md){
+    var lineas = String(md).replace(/\r\n/g,"\n").split("\n");
+    var out = [], lista = null, buf = [];
+    function cerrar(){
+      if(!lista) return;
+      out.push("<" + lista + ">" + buf.join("") + "</" + lista + ">");
+      lista = null; buf = [];
+    }
+    lineas.forEach(function(ln){
+      var mu = /^\s{0,3}[-*+]\s+(.*)$/.exec(ln);
+      var mo = /^\s{0,3}\d+[.)]\s+(.*)$/.exec(ln);
+      if(mu || mo){
+        var tipo = mu ? "ul" : "ol";
+        if(lista && lista !== tipo) cerrar();
+        lista = tipo;
+        buf.push("<li>" + (inlineToHtml((mu || mo)[1]) || "<br>") + "</li>");
+        return;
+      }
+      cerrar();
+      out.push("<div>" + (inlineToHtml(ln) || "<br>") + "</div>");
+    });
+    cerrar();
+    return out.join("") || "<div><br></div>";
+  }
+  /* dom -> markdown */
+  function inlineToMd(node){
+    var out = "";
+    for(var i = 0; i < node.childNodes.length; i++){
+      var n = node.childNodes[i];
+      if(n.nodeType === 3){ out += n.data.replace(ZW, ""); continue; }
+      if(n.nodeType !== 1) continue;
+      var mk = n.getAttribute("data-k");
+      if(mk){ out += "{" + mk + "}"; continue; }
+      var t = n.nodeName, dentro = inlineToMd(n);
+      if(t === "BR"){ out += "\n"; }
+      else if(!dentro.trim()){ out += dentro; }
+      else if(t === "STRONG" || t === "B"){ out += "**" + dentro + "**"; }
+      else if(t === "EM" || t === "I"){ out += "*" + dentro + "*"; }
+      else if(t === "CODE"){ out += "`" + dentro + "`"; }
+      else if(t === "S" || t === "STRIKE" || t === "DEL"){ out += "~~" + dentro + "~~"; }
+      else out += dentro;
+    }
+    return out;
+  }
+  var BLOQUE = {DIV:1, P:1, LI:1, UL:1, OL:1, BLOCKQUOTE:1, PRE:1};
+  function domToMd(root){
+    var lineas = [];
+    function recorrer(el, prefijo, orden){
+      var n = orden || 0;
+      for(var i = 0; i < el.childNodes.length; i++){
+        var c = el.childNodes[i];
+        if(c.nodeType === 3){
+          var t = c.data.replace(ZW, "");
+          if(t.trim()) lineas.push(t);
+          continue;
+        }
+        if(c.nodeType !== 1) continue;
+        if(c.getAttribute("data-k")){ lineas.push("{" + c.getAttribute("data-k") + "}"); continue; }
+        var nom = c.nodeName;
+        if(nom === "UL" || nom === "OL"){ recorrer(c, nom === "UL" ? "- " : "#. ", 0); continue; }
+        if(nom === "LI"){ n++; lineas.push((prefijo === "#. " ? n + ". " : "- ") + inlineToMd(c)); continue; }
+        if(BLOQUE[nom]){
+          var hijosBloque = false;
+          for(var j = 0; j < c.childNodes.length; j++){
+            var h = c.childNodes[j];
+            if(h.nodeType === 1 && (BLOQUE[h.nodeName])) { hijosBloque = true; break; }
+          }
+          if(hijosBloque){ recorrer(c, prefijo, 0); }
+          else lineas.push(inlineToMd(c));
+          continue;
+        }
+        lineas.push(inlineToMd(c));
+      }
+    }
+    recorrer(root, "", 0);
+    return lineas.join("\n").replace(/\n{3,}/g, "\n\n").replace(/[ \t]+\n/g, "\n").trim();
+  }
+
+  /* ---------------- texto ---------------- */
+  function view(t){
+    return t.replace(MARCADOR, function(m, k){
+      var mk = DRAFT.marcadores[k];
+      if(!mk) return m;
+      return mk.vista || mk.valor;
+    });
+  }
+  function real(t){
+    return t.replace(MARCADOR, function(m, k){
+      var mk = DRAFT.marcadores[k];
+      return mk ? mk.valor : m;
+    });
+  }
+  function sinMarcas(t){
+    return real(t).replace(/(\*\*|__|~~|[*_`])/g, "")
+                  .replace(/^\s{0,3}(?:[-*+]|\d+[.)])\s+/gm, " ");
+  }
+  function words(t){
+    return sinMarcas(t).trim().split(/\s+/).filter(Boolean).length;
+  }
+  function rawOf(mid, s){
+    var st = state[mid][s.id];
+    if(st.ediciones[st.pick]) return st.ediciones[st.pick];
+    return s.opts[st.pick] ? s.opts[st.pick].text : "";
+  }
+  function edited(mid, s){
+    var st = state[mid][s.id];
+    return st.pick !== "quitar" && !!st.ediciones[st.pick];
+  }
+  /* Las secciones que salen, en orden. Una seccion "unida" se pega a la anterior que sale,
+     en el mismo parrafo: la costura es un espacio en vez de un renglon vacio. Si no hay
+     anterior (es la primera, o las de arriba estan quitadas), la marca no hace nada. */
+  function visibles(mid){
+    return msgById[mid].secciones.filter(function(s){ return state[mid][s.id].pick !== "quitar"; });
+  }
+  /* Una lista no se pega: el texto de la otra seccion quedaria adentro del ultimo punto. */
+  var LISTA = /^\s{0,3}(?:[-*+]|\d+[.)])\s/;
+  function puedeUnir(mid, s){
+    var v = visibles(mid), i = v.indexOf(s);
+    if(i < 1) return false;
+    var antes = rawOf(mid, v[i - 1]).trim().split("\n"), esta = rawOf(mid, s).trim().split("\n");
+    return !LISTA.test(antes[antes.length - 1]) && !LISTA.test(esta[0]);
+  }
+  function pegada(mid, s){
+    return !!state[mid][s.id].unida && puedeUnir(mid, s);
+  }
+  function plainText(mid){
+    var out = "";
+    visibles(mid).forEach(function(s){
+      var t = real(rawOf(mid, s)).trim();
+      if(!t) return;
+      out += out ? (pegada(mid, s) ? " " : "\n\n") + t : t;
+    });
+    return out;
+  }
+  function pendientes(mid){
+    var n = 0, m = msgById[mid];
+    m.secciones.forEach(function(s){ if(state[mid][s.id].nota.trim()) n++; });
+    if(general[mid].nota.trim()) n++;
+    return n;
+  }
+
+  /* ---------------- base de datos ---------------- */
+  var DB = null, primeraLectura = {}, existe = {};
+  var dbEl = document.getElementById("dbstate");
+  function marca(txt, malo){
+    dbEl.textContent = txt;
+    dbEl.className = "dbstate" + (malo ? " is-bad" : "");
+  }
+  function hora(){
+    var d = new Date();
+    return ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2);
+  }
+  function base(mid){
+    return mid === SOLO ? "drafts/" + DRAFT.draftId
+                        : "drafts/" + DRAFT.draftId + "/mensajes/" + mid;
+  }
+  function docMsg(mid){ return DB.doc(base(mid)); }
+  function docSec(mid, sid){ return DB.doc(base(mid) + "/secciones/" + sid); }
+
+  /* Toca el timbre de la sesion de Claude que publico la pagina, para que no tenga que
+     revisar la base cada tantos minutos. Es un extra: si no hay sesion mirando, o la cuenta
+     no lo ofrece, no pasa nada y Claude lo ve en su proxima revision de la base, como antes.
+     El texto es una sola linea (comments rechaza saltos) y lo lee una maquina: SKILL.md
+     busca el prefijo "[versiones]". */
+  function avisarClaude(que, mid){
+    if(!(window.claude && typeof window.claude.use === "function")) return;
+    /* El aviso le llega a TODAS las sesiones que miran el artifact. Un borrador de prueba
+       no toca el timbre, para que ninguna sesion mande nada por una prueba. */
+    if(/^prueba-/.test(DRAFT.draftId)){ marca("aviso omitido (prueba) · " + hora()); return; }
+    window.claude.use("comments").then(function(cm){
+      if(!cm || typeof cm.canSendToClaude !== "function") return null;
+      return cm.canSendToClaude().then(function(st){
+        if(st !== "available") return null;
+        return cm.anchorFor(document.getElementById("titulo")).then(function(anchor){
+          var txt = "[versiones] " + que + " · draft=" + DRAFT.draftId +
+                    (mid && mid !== SOLO ? " · msg=" + mid : "") + " · " + (DRAFT.tab || "");
+          return cm.sendToClaude({anchor: anchor, text: txt});
+        });
+      }).then(function(r){ if(r) marca("Claude avisado · " + hora()); });
+    }).then(null, function(){});
+  }
+  function ok(){ marca("guardado " + hora()); }
+  function fallo(e){ marca("no se guardó (" + (e && e.code || "?") + ")", true); }
+
+  var ultimoPush = {};
+  function pushSec(mid, sid){
+    saveLocal();
+    sucio[mid + "|" + sid] = false;
+    if(!DB) return;
+    var st = state[mid][sid];
+    var ts = new Date().toISOString();
+    ultimoPush[mid + "|" + sid] = ts;
+    var ed = st.ediciones[st.pick] || "";
+    docSec(mid, sid).set({
+      pick: st.pick, textoEditado: ed, editadoDe: ed ? st.pick : "", ediciones: st.ediciones,
+      nota: st.nota, unida: !!st.unida,
+      h: secById[mid][sid].h, rev: DRAFT.rev, ts: ts
+    }).then(ok, fallo);
+  }
+  // Sale del draft.json y no cambia en toda la sesion. Se escribe al crear el
+  // documento y no se vuelve a tocar. Antes viajaba en cada guardado.
+  function fijoMsg(mid){
+    var m = msgById[mid];
+    var f = { titulo: m.titulo, canal: m.canal };
+    if(HILO){ f.orden = MSGS.indexOf(m); f.hiloDe = DRAFT.titulo; }
+    return f;
+  }
+  // Lo unico que el usuario mueve desde la pagina.
+  function mutableMsg(mid){
+    var g = general[mid];
+    var d = { notaGeneral: g.nota, listo: g.listo, notas: pendientes(mid),
+              rev: DRAFT.rev, ts: new Date().toISOString() };
+    if(g.envio) d.envio = g.envio;
+    return d;
+  }
+  function pushMsg(mid){
+    saveLocal();
+    if(!DB) return;
+    var mut = mutableMsg(mid);
+    // update() respeta los campos que no nombra, entre ellos los que se escriben
+    // desde el chat. set() reemplaza el documento entero y se los lleva puestos,
+    // asi que solo se usa para crearlo. update() exige que ya exista.
+    if(existe[mid]){
+      docMsg(mid).update(mut).then(ok, function(e){
+        if(e && e.code === "invalid_argument"){ existe[mid] = false; pushMsg(mid); return; }
+        fallo(e);
+      });
+    }else{
+      var d = fijoMsg(mid);
+      for(var k in mut) d[k] = mut[k];
+      docMsg(mid).set(d).then(function(){ existe[mid] = true; ok(); }, fallo);
+    }
+  }
+  function pushIndice(){
+    if(!DB || !HILO) return;
+    var ref = DB.doc("drafts/" + DRAFT.draftId);
+    var d = {
+      titulo: DRAFT.titulo, canal: DRAFT.canal, hilo: true,
+      mensajes: MSGS.map(function(m){ return {id:m.id, titulo:m.titulo}; }),
+      rev: DRAFT.rev, ts: new Date().toISOString()
+    };
+    // Mismo motivo que pushMsg: set() solo para crearlo.
+    ref.update(d).then(function(){}, function(e){
+      if(e && e.code === "invalid_argument") ref.set(d).then(function(){}, function(){});
+    });
+  }
+
+  var timers = {};
+  function pronto(clave, fn){
+    saveLocal();
+    clearTimeout(timers[clave]);
+    timers[clave] = setTimeout(fn, 1200);
+  }
+
+  function aplicarSec(mid, sid, d){
+    var s = secById[mid][sid];
+    if(!s || !d) return false;
+    /* Eco viejo: el snapshot venia viajando mientras el push del usuario todavia estaba en el
+       aire. Aplicarlo le revierte lo que acaba de escribir. Lo que escribe Claude desde el
+       chat trae ts nuevo (o ninguno) y sigue entrando. */
+    if(d.ts && d.ts < (ultimoPush[mid + "|" + sid] || "")) return false;
+    var st = state[mid][sid];
+    var viejo = d.h && d.h !== s.h;
+    if(validPick(s, d.pick)) st.pick = d.pick;
+    st.unida = !!d.unida;
+    if(viejo){ st.ediciones = {}; st.nota = ""; }
+    else{
+      st.ediciones = leerEdiciones(d);
+      st.nota = typeof d.nota === "string" ? d.nota : "";
+    }
+    return viejo;
+  }
+
+  function conectar(){
+    if(!(window.claude && typeof window.claude.use === "function")){
+      marca("sin base · usá Copiar", true); return;
+    }
+    marca("conectando…");
+    window.claude.use("db").then(function(db){
+      if(!db){ marca("sin base · usá Copiar", true); return; }
+      DB = db; marca("base conectada");
+      pushIndice();
+      MSGS.forEach(function(m){
+        primeraLectura[m.id] = true;
+        docMsg(m.id).onSnapshot(function(snap){
+          existe[m.id] = snap.exists;
+          if(!snap.exists) return;
+          var d = snap.data() || {};
+          if(d.rev && d.rev !== DRAFT.rev && primeraLectura[m.id]) return;
+          var g = general[m.id];
+          if(!(m.id === activo && document.activeElement === taGeneral) &&
+             typeof d.notaGeneral === "string") g.nota = d.notaGeneral;
+          g.listo = !!d.listo;
+          if(d.envio && typeof d.envio === "object") g.envio = JSON.parse(JSON.stringify(d.envio));
+          saveLocal(); render();
+        }, function(e){ marca("base caída (" + (e && e.code || "?") + ")", true); });
+
+        DB.collection(base(m.id) + "/secciones").onSnapshot(function(snap){
+          var limpiar = [];
+          snap.docs.forEach(function(doc){
+            var sid = doc.id;
+            if(!secById[m.id][sid]) return;
+            if(m.id === activo){
+              var r = refs[sid];
+              if(r){
+                if(document.activeElement === r.nota) return;
+                var pEl = r.txt[state[m.id][sid].pick];
+                if(pEl && document.activeElement === pEl) return;
+              }
+            }
+            if(aplicarSec(m.id, sid, doc.data() || {})) limpiar.push(sid);
+          });
+          primeraLectura[m.id] = false;
+          saveLocal(); render();
+          limpiar.forEach(function(sid){ pushSec(m.id, sid); });
+        }, function(e){ marca("base caída (" + (e && e.code || "?") + ")", true); });
+      });
+    }, function(){ marca("sin base · usá Copiar", true); });
+  }
+
+  /* ---------------- tema ---------------- */
+  var raiz = document.documentElement;
+  var TEMA = "versiones:tema";
+  var SOL = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>';
+  var LUNA = '<path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"></path>';
+  function oscuroAhora(){
+    var t = raiz.getAttribute("data-theme");
+    if(t === "dark") return true;
+    if(t === "light") return false;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function pintarTema(){
+    document.getElementById("theme-ico").innerHTML = oscuroAhora() ? LUNA : SOL;
+  }
+  try{
+    var tg = localStorage.getItem(TEMA);
+    if(tg === "dark" || tg === "light") raiz.setAttribute("data-theme", tg);
+  }catch(e){}
+  function alternarTema(){
+    var nuevo = oscuroAhora() ? "light" : "dark";
+    raiz.setAttribute("data-theme", nuevo);
+    try{ localStorage.setItem(TEMA, nuevo); }catch(e){}
+    pintarTema();
+  }
+  document.getElementById("theme").addEventListener("click", alternarTema);
+  pintarTema();
+
+  var topEl = document.getElementById("top");
+  window.addEventListener("scroll", function(){
+    topEl.classList.toggle("is-scrolled", window.scrollY > 8);
+  }, {passive:true});
+
+  function acuse(el){
+    el.classList.remove("is-acuse"); void el.offsetWidth;
+    el.classList.add("is-acuse");
+    el.addEventListener("animationend", function(){ el.classList.remove("is-acuse"); }, {once:true});
+  }
+
+  /* ---------------- confeti ---------------- */
+  var lienzo = document.getElementById("confetti");
+  function confeti(){
+    if(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var ctx = lienzo.getContext("2d");
+    var w = lienzo.width = window.innerWidth, h = lienzo.height = window.innerHeight;
+    lienzo.hidden = false;
+    var css = getComputedStyle(raiz);
+    var tonos = [css.getPropertyValue("--accent").trim() || "#2563EB",
+                 "#F59E0B", "#10B981", "#EC4899", css.getPropertyValue("--text-primary").trim()];
+    var piezas = [];
+    for(var i = 0; i < 90; i++){
+      piezas.push({
+        x: w * (.5 + (Math.random() - .5) * .5), y: h + 10,
+        vx: (Math.random() - .5) * 9, vy: -(11 + Math.random() * 11),
+        g: .32 + Math.random() * .12, s: 4 + Math.random() * 5,
+        rot: Math.random() * 6.28, vr: (Math.random() - .5) * .3,
+        c: tonos[i % tonos.length]
+      });
+    }
+    var t0 = performance.now();
+    (function paso(t){
+      var vida = t - t0;
+      ctx.clearRect(0, 0, w, h);
+      var vivas = 0;
+      piezas.forEach(function(p){
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        if(p.y > h + 40) return;
+        vivas++;
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = Math.max(0, 1 - vida / 2400);
+        ctx.fillStyle = p.c;
+        ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 1.6);
+        ctx.restore();
+      });
+      if(vivas && vida < 2400) requestAnimationFrame(paso);
+      else{ ctx.clearRect(0, 0, w, h); lienzo.hidden = true; }
+    })(t0);
+  }
+
+  /* ---------------- encabezado ---------------- */
+  var crumbEl = document.getElementById("crumb");
+  var tituloEl = document.getElementById("titulo");
+  var subEl = document.getElementById("sub");
+  function pintarCabeza(){
+    crumbEl.textContent = "";
+    [C().eyebrow].forEach(function(t){
+      if(!t) return;
+      var sp = document.createElement("span"); sp.textContent = t; crumbEl.appendChild(sp);
+    });
+    tituloEl.textContent = HILO ? MSG().titulo : DRAFT.titulo;
+    var dest = MSG().destino || {};
+    subEl.textContent = [dest.para ? "Para: " + dest.para : "",
+                         dest.asunto ? "Asunto: " + dest.asunto : ""].filter(Boolean).join("  ·  ");
+    subEl.hidden = !subEl.textContent;
+  }
+
+  /* ---------------- pestañas del hilo ---------------- */
+  var threadEl = document.getElementById("thread");
+  function pintarHilo(){
+    if(!HILO) return;
+    threadEl.hidden = false;
+    threadEl.textContent = "";
+    MSGS.forEach(function(m, i){
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "tab";
+      b.setAttribute("role", "tab");
+      b.setAttribute("aria-selected", m.id === activo ? "true" : "false");
+      b.appendChild(document.createTextNode((i + 1) + ". " + (m.tab || m.titulo)));
+      var g = general[m.id];
+      if(g.listo || g.envio){
+        var t = document.createElement("span"); t.className = "tick"; t.textContent = "✓";
+        b.appendChild(t);
+      }else if(pendientes(m.id)){
+        var d = document.createElement("span"); d.className = "dot"; b.appendChild(d);
+      }
+      b.addEventListener("click", function(){ irA(m.id); });
+      threadEl.appendChild(b);
+    });
+  }
+  function irA(mid){
+    if(mid === activo || !msgById[mid]) return;
+    soltarPendientes();
+    pidiendoReset = false;
+    var foco = document.activeElement;
+    if(foco && foco.blur && (rowsEl.contains(foco) || foco === taGeneral)) foco.blur();
+    activo = mid;
+    saveLocal();
+    construir();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  /* ---------------- filas ---------------- */
+  var rowsEl = document.getElementById("rows");
+  var fullsEl = document.getElementById("fulls");
+  var countsEl = document.getElementById("counts");
+  var refs = {};
+
+  function versionWords(k){
+    return MSG().secciones.reduce(function(n, s){ return n + words(s.opts[k].text); }, 0);
+  }
+
+  /* markdown en vivo dentro de la tarjeta elegida */
+  var REGLAS = [
+    {re:/\*\*([^*\s](?:[^*]*[^*\s])?)\*\*$/, tag:"strong", n:1},
+    {re:/(^|[\s(¡¿"'])\*([^*\s](?:[^*]*[^*\s])?)\*$/, tag:"em", n:2},
+    {re:/(^|[\s(¡¿"'])_([^_\s](?:[^_]*[^_\s])?)_$/, tag:"em", n:2},
+    {re:/~~([^~\s](?:[^~]*[^~\s])?)~~$/, tag:"s", n:1},
+    {re:/`([^`\s][^`]*)`$/, tag:"code", n:1}
+  ];
+  /* la misma tabla, pero para cuando el cierre YA estaba escrito y lo que se
+     acaba de teclear es la apertura. Sin esto, poner primero los asteriscos del
+     final y despues los del principio no hacia nada. */
+  var REGLAS_ABRE = [
+    {abre:"**", re:/^([^*\s](?:[^*]*[^*\s])?)\*\*(?!\*)/, tag:"strong", borde:false},
+    {abre:"~~", re:/^([^~\s](?:[^~]*[^~\s])?)~~(?!~)/, tag:"s", borde:false},
+    {abre:"`",  re:/^([^`\s][^`]*)`/, tag:"code", borde:false},
+    {abre:"*",  re:/^([^*\s](?:[^*]*[^*\s])?)\*(?!\*)/, tag:"em", borde:true},
+    {abre:"_",  re:/^([^_\s](?:[^_]*[^_\s])?)_(?!_)/, tag:"em", borde:true}
+  ];
+  /* la ultima marca que puso el editor solo. Backspace ahi mismo la deshace. */
+  var ultimaMarca = null, marcando = false;
+  function envolver(raiz, node, desde, hasta, tag, dentro, literal){
+    var sel = window.getSelection();
+    var rr = document.createRange();
+    rr.setStart(node, desde);
+    rr.setEnd(node, hasta);
+    sel.removeAllRanges(); sel.addRange(rr);
+    marcando = true;
+    try{
+      document.execCommand("insertHTML", false,
+        "<" + tag + " class=\"md-nueva\">" + esc(dentro) + "</" + tag + ">\u200b");
+    }finally{ marcando = false; }
+    var puesta = raiz.querySelector(".md-nueva");
+    if(puesta){
+      puesta.removeAttribute("class");
+      ultimaMarca = {raiz:raiz, nodo:puesta, md:literal};
+    }else ultimaMarca = null;
+    return true;
+  }
+  function aplicarInline(raiz){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return false;
+    var r = sel.getRangeAt(0);
+    if(!r.collapsed || r.startContainer.nodeType !== 3) return false;
+    var node = r.startContainer, corte = r.startOffset;
+    var antes = node.data.slice(0, corte), despues = node.data.slice(corte);
+    var i, g, m;
+    /* cierre recien tecleado: la marca termina en el caret */
+    for(i = 0; i < REGLAS.length; i++){
+      g = REGLAS[i]; m = g.re.exec(antes);
+      if(!m) continue;
+      var dentro = m[g.n];
+      if(!dentro) continue;
+      var largo = g.n === 2 ? dentro.length + 2 : m[0].length;
+      return envolver(raiz, node, corte - largo, corte, g.tag, dentro,
+                      node.data.slice(corte - largo, corte));
+    }
+    /* apertura recien tecleada: el cierre ya estaba adelante */
+    for(i = 0; i < REGLAS_ABRE.length; i++){
+      g = REGLAS_ABRE[i];
+      if(antes.slice(-g.abre.length) !== g.abre) continue;
+      var previo = antes.slice(0, antes.length - g.abre.length);
+      if(previo.slice(-1) === g.abre.slice(-1)) continue;
+      if(g.borde && previo && !/[\s(¡¿"']$/.test(previo)) continue;
+      m = g.re.exec(despues);
+      if(!m || !m[1]) continue;
+      return envolver(raiz, node, corte - g.abre.length, corte + m[0].length,
+                      g.tag, m[1], g.abre + m[0]);
+    }
+    return false;
+  }
+  /* el caret esta pegado al final de `nodo`, con nada mas que \u200b de por medio */
+  function caretJustoDespues(nodo, r){
+    var c = r.startContainer, o = r.startOffset, n;
+    if(c.nodeType === 3){
+      if(c.data.slice(0, o).replace(ZW, "") !== "") return false;
+      n = c;
+    }else if(o > 0){
+      var prev = c.childNodes[o - 1];
+      if(prev === nodo) return true;
+      if(!prev || prev.textContent.replace(ZW, "") !== "") return false;
+      n = prev;
+    }else n = c;
+    var vueltas = 0;
+    while(n && vueltas++ < 30){
+      var p = n.previousSibling;
+      while(p && p !== nodo && p.textContent.replace(ZW, "") === "") p = p.previousSibling;
+      if(p) return p === nodo;
+      n = n.parentNode;
+      if(n === nodo) return true;
+    }
+    return false;
+  }
+  /* Backspace pegado a una marca recien puesta la devuelve a sus asteriscos. */
+  function deshacerMarca(raiz){
+    if(!ultimaMarca || ultimaMarca.raiz !== raiz) return false;
+    var nodo = ultimaMarca.nodo;
+    if(!nodo || !nodo.parentNode || !raiz.contains(nodo)){ ultimaMarca = null; return false; }
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return false;
+    var r = sel.getRangeAt(0);
+    if(!r.collapsed || !caretJustoDespues(nodo, r)) return false;
+    var padre = nodo.parentNode;
+    var rr = document.createRange();
+    rr.setStartAfter(nodo);
+    rr.setEnd(r.startContainer, r.startOffset);
+    rr.deleteContents();
+    var txt = document.createTextNode(ultimaMarca.md);
+    padre.replaceChild(txt, nodo);
+    var sobras = raiz.querySelectorAll("span");
+    for(var i = 0; i < sobras.length; i++){
+      if(!sobras[i].textContent.replace(ZW, "") && sobras[i].parentNode)
+        sobras[i].parentNode.removeChild(sobras[i]);
+    }
+    var pos = txt.data.length, sig = txt.nextSibling, ant = txt.previousSibling;
+    if(sig && sig.nodeType === 3){ txt.appendData(sig.data); txt.parentNode.removeChild(sig); }
+    if(ant && ant.nodeType === 3){
+      pos += ant.data.length; ant.appendData(txt.data);
+      txt.parentNode.removeChild(txt); txt = ant;
+    }
+    var cr = document.createRange();
+    cr.setStart(txt, Math.min(pos, txt.data.length)); cr.collapse(true);
+    sel.removeAllRanges(); sel.addRange(cr);
+    ultimaMarca = null;
+    return true;
+  }
+  /* El \u200b que cierra una marca es invisible: si Backspace se lo come solo,
+     la tecla parece muerta. Se saca aqui y el navegador borra el de verdad. */
+  function comerZW(dir){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return false;
+    var r = sel.getRangeAt(0);
+    if(!r.collapsed || r.startContainer.nodeType !== 3) return false;
+    var node = r.startContainer, o = r.startOffset, n = 0;
+    if(dir < 0){
+      while(o - n > 0 && node.data.charCodeAt(o - n - 1) === 0x200b) n++;
+      if(!n) return false;
+      node.deleteData(o - n, n); o -= n;
+    }else{
+      while(o + n < node.data.length && node.data.charCodeAt(o + n) === 0x200b) n++;
+      if(!n) return false;
+      node.deleteData(o, n);
+    }
+    var cont = node, idx = o;
+    if(!node.data && node.parentNode && node.parentNode.nodeName === "SPAN" &&
+       !node.parentNode.textContent){
+      var papa = node.parentNode;
+      cont = papa.parentNode;
+      idx = Array.prototype.indexOf.call(cont.childNodes, papa);
+      cont.removeChild(papa);
+    }
+    var rr = document.createRange();
+    rr.setStart(cont, idx); rr.collapse(true);
+    sel.removeAllRanges(); sel.addRange(rr);
+    return true;
+  }
+  function bloqueDe(node, raizEl){
+    var n = node.nodeType === 3 ? node.parentNode : node;
+    while(n && n !== raizEl && !/^(DIV|P|LI)$/.test(n.nodeName)) n = n.parentNode;
+    return n === raizEl ? null : n;
+  }
+  function aplicarLista(raizEl){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount) return false;
+    var r = sel.getRangeAt(0);
+    if(!r.collapsed) return false;
+    var bl = bloqueDe(r.startContainer, raizEl);
+    if(!bl || bl.nodeName === "LI") return false;
+    var t = bl.textContent.replace(ZW, "");
+    var m = /^([-*+]|\d+[.)])\s$/.exec(t);
+    if(!m) return false;
+    var lista = document.createElement(/\d/.test(m[1]) ? "ol" : "ul");
+    var li = document.createElement("li");
+    li.appendChild(document.createElement("br"));
+    lista.appendChild(li);
+    if(!bl.parentNode) return false;
+    bl.parentNode.replaceChild(lista, bl);
+    var rr = document.createRange();
+    rr.setStart(li, 0); rr.collapse(true);
+    sel.removeAllRanges(); sel.addRange(rr);
+    return true;
+  }
+  /* Chrome mete style="letter-spacing:..." en lo que inserta. Lo saca. */
+  function limpiarEstilos(el){
+    var sucios = el.querySelectorAll("[style]");
+    for(var i = 0; i < sucios.length; i++) sucios[i].removeAttribute("style");
+  }
+
+  function construir(){
+    var m = MSG();
+    refs = {};
+    rowsEl.textContent = "";
+    fullsEl.textContent = "";
+    countsEl.textContent = "";
+
+    KEYS.forEach(function(k){
+      var li = document.createElement("li");
+      var b = document.createElement("b"); b.textContent = LABEL[k];
+      li.appendChild(b);
+      li.appendChild(document.createTextNode(" " + versionWords(k) +
+        (k === KEYS[KEYS.length-1] ? " pal." : "")));
+      countsEl.appendChild(li);
+    });
+
+    m.secciones.forEach(function(s, i){
+      var sec = document.createElement("section");
+      var head = document.createElement("div"); head.className = "row-head";
+      var n = document.createElement("span"); n.className = "row-n";
+      n.textContent = String(i+1).length < 2 ? "0" + (i+1) : String(i+1);
+      var h = document.createElement("h2"); h.textContent = s.nombre;
+      var job = document.createElement("p"); job.className = "row-job";
+      job.textContent = s.job; job.title = s.job;
+      var chips = document.createElement("span"); chips.className = "chips";
+      var chipEdit = document.createElement("span"); chipEdit.className = "chip"; chipEdit.textContent = "editado"; chipEdit.hidden = true;
+      var chipNote = document.createElement("span"); chipNote.className = "chip is-note"; chipNote.textContent = "nota"; chipNote.hidden = true;
+      var chipJoin = document.createElement("span"); chipJoin.className = "chip"; chipJoin.textContent = "pegada a la anterior"; chipJoin.hidden = true;
+      chips.appendChild(chipJoin); chips.appendChild(chipEdit); chips.appendChild(chipNote);
+      head.appendChild(n); head.appendChild(h); head.appendChild(job); head.appendChild(chips);
+
+      var opts = document.createElement("div");
+      opts.className = "opts" + (s.opcional ? " has-drop" : "");
+      var claves = s.opcional ? KEYS.concat(["quitar"]) : KEYS;
+      var txtEls = {};
+      claves.forEach(function(k){
+        var card = document.createElement("div");
+        card.className = "opt" + (k === "quitar" ? " is-drop" : "");
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        card.setAttribute("data-sec", s.id);
+        card.setAttribute("data-opt", k);
+
+        var top = document.createElement("div"); top.className = "opt-top";
+        var chk = document.createElement("span"); chk.className = "check";
+        var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = LABEL[k];
+        top.appendChild(chk); top.appendChild(tag);
+        if(s.recomendada === k){
+          var rc = document.createElement("span"); rc.className = "rec"; rc.textContent = "Rec.";
+          top.appendChild(rc);
+        }
+        var wc = document.createElement("span"); wc.className = "wc";
+        wc.textContent = k === "quitar" ? "0" : words(s.opts[k].text) + " pal.";
+        top.appendChild(wc);
+        card.appendChild(top);
+
+        var p = document.createElement("div"); p.className = "txt";
+        if(k === "quitar"){
+          p.textContent = "Sin esta sección.";
+        }else{
+          p.innerHTML = mdToHtml(view(s.opts[k].text));
+          p.setAttribute("role", "textbox");
+          p.setAttribute("aria-multiline", "true");
+          p.setAttribute("aria-label", s.nombre + ", versión " + LABEL[k]);
+          txtEls[k] = p;
+          p.addEventListener("input", function(ev){
+            if(state[activo][s.id].pick !== k || marcando) return;
+            ultimaMarca = null;
+            var escribiendo = !ev.inputType || ev.inputType.indexOf("insert") === 0;
+            if(escribiendo){
+              if(!aplicarLista(p)) aplicarInline(p);
+              limpiarEstilos(p);
+            }
+            anotar(s, k, p);
+          });
+          p.addEventListener("blur", function(){
+            ultimaMarca = null;
+            clearTimeout(timers["e:" + s.id]);
+            if(refs[s.id]) refs[s.id].fmt.classList.remove("is-on");
+            guardarEdicion(s, k, p);
+          });
+          p.addEventListener("keydown", function(ev){
+            teclas(ev, p, function(){ anotar(s, k, p); });
+          });
+          p.addEventListener("focus", function(){
+            if(refs[s.id]) refs[s.id].fmt.classList.add("is-on");
+          });
+          p.addEventListener("paste", function(ev){ pegarTexto(ev, p); });
+        }
+        card.appendChild(p);
+
+        if(k !== "quitar"){
+          var note = document.createElement("p"); note.className = "note"; note.textContent = s.opts[k].note;
+          card.appendChild(note);
+        }
+        opts.appendChild(card);
+      });
+
+      var foot = document.createElement("div"); foot.className = "row-foot";
+      var btnNota = document.createElement("button");
+      btnNota.type = "button"; btnNota.className = "lnk";
+      var btnUndo = document.createElement("button");
+      btnUndo.type = "button"; btnUndo.className = "lnk"; btnUndo.textContent = "Volver al original"; btnUndo.hidden = true;
+      var btnSep = document.createElement("button");
+      btnSep.type = "button"; btnSep.className = "lnk"; btnSep.textContent = "Separar de la anterior"; btnSep.hidden = true;
+      var fmt = document.createElement("span"); fmt.className = "fmt-hint";
+      fmt.innerHTML = "Escribí <b>**negrita**</b>, <b>*cursiva*</b>, <b>- lista</b>. Se aplica solo.";
+      var hint = document.createElement("span"); hint.className = "foot-hint"; hint.hidden = true;
+      foot.appendChild(btnNota); foot.appendChild(btnUndo); foot.appendChild(btnSep); foot.appendChild(fmt); foot.appendChild(hint);
+
+      var box = document.createElement("div"); box.className = "notebox"; box.hidden = true;
+      var lab = document.createElement("label"); lab.setAttribute("for", "nota-" + s.id);
+      lab.textContent = "Nota para Claude";
+      var explic = document.createElement("p");
+      explic.textContent = "Qué rehacer acá. No cambia el texto: le da trabajo a Claude.";
+      var ta = document.createElement("textarea");
+      ta.id = "nota-" + s.id; ta.rows = 2;
+      ta.placeholder = "Ej: muy formal, bajale el tono.";
+      box.appendChild(lab); box.appendChild(explic); box.appendChild(ta);
+
+      ta.addEventListener("input", function(){
+        state[activo][s.id].nota = ta.value;
+        /* Escribir una nota reabre el pedido: si estaba marcado como cerrado, deja de
+           estarlo. Vale igual despues de aprobar un envio, porque un envio solo se puede
+           aprobar sin notas: cualquier nota que conviva con uno es posterior. */
+        if(general[activo].listo && pendientes(activo)) general[activo].listo = false;
+        pintarChips(s); pintarPendientes(); pintarPrimario();
+        pronto("n:" + s.id, function(){ pushSec(activo, s.id); pushMsg(activo); });
+      });
+      ta.addEventListener("blur", function(){
+        state[activo][s.id].nota = ta.value;
+        clearTimeout(timers["n:" + s.id]);
+        pushSec(activo, s.id); pushMsg(activo); render();
+      });
+      btnNota.addEventListener("click", function(){
+        box.hidden = !box.hidden;
+        pintarChips(s);
+        if(!box.hidden) ta.focus();
+      });
+      btnSep.addEventListener("click", function(){ unir(s, false); });
+      btnUndo.addEventListener("click", function(){
+        delete state[activo][s.id].ediciones[state[activo][s.id].pick];
+        pushSec(activo, s.id); render();
+      });
+
+      sec.appendChild(head); sec.appendChild(opts); sec.appendChild(foot); sec.appendChild(box);
+      rowsEl.appendChild(sec);
+      refs[s.id] = {card:opts, txt:txtEls, chipEdit:chipEdit, chipNote:chipNote, chipJoin:chipJoin, btnSep:btnSep,
+                    btnNota:btnNota, btnUndo:btnUndo, box:box, nota:ta, hint:hint, fmt:fmt};
+    });
+
+    KEYS.forEach(function(k){
+      var art = document.createElement("article"); art.className = "full";
+      var h3 = document.createElement("h3");
+      h3.appendChild(document.createTextNode(LABEL[k]));
+      var em = document.createElement("em"); em.textContent = versionWords(k) + " pal.";
+      h3.appendChild(em);
+      var body = document.createElement("div"); body.className = "body";
+      m.secciones.forEach(function(s){
+        var d = document.createElement("div");
+        d.innerHTML = mdToHtml(view(s.opts[k].text));
+        body.appendChild(d);
+      });
+      art.appendChild(h3); art.appendChild(body);
+      fullsEl.appendChild(art);
+    });
+
+    pintarDestino();
+  }
+
+  /* Teclas de formato, iguales en la tarjeta y en lo que sale. alCambiar baja el texto. */
+  function teclas(ev, el, alCambiar){
+    if(!ev.metaKey && !ev.ctrlKey && !ev.altKey){
+      if(ev.key === "Backspace"){
+        if(deshacerMarca(el)){
+          ev.preventDefault();
+          alCambiar();
+          return;
+        }
+        comerZW(-1);   /* sin preventDefault: el borrado lo hace el navegador */
+      }else if(ev.key === "Delete") comerZW(1);
+    }
+    var cmd = ev.metaKey || ev.ctrlKey;
+    if(!cmd) return;
+    var kk = ev.key.toLowerCase();
+    var orden = kk === "b" ? "bold" : kk === "i" ? "italic"
+              : (kk === "x" && ev.shiftKey) ? "strikeThrough" : kk === "e" ? "code" : null;
+    if(!orden) return;
+    ev.preventDefault();
+    if(orden === "code") envolverCodigo();
+    else document.execCommand(orden);
+    limpiarEstilos(el);
+    alCambiar();
+  }
+  function pegarTexto(ev, el){
+    ev.preventDefault();
+    var t = (ev.clipboardData || window.clipboardData).getData("text/plain");
+    if(/\*\*|~~|`|^\s{0,3}(?:[-*+]|\d+[.)])\s/m.test(t)){
+      document.execCommand("insertHTML", false, mdToHtml(t));
+      limpiarEstilos(el);
+    }else{
+      document.execCommand("insertText", false, t);
+    }
+  }
+
+  /* ---------------- lo que sale, editable ---------------- */
+  /* Cada seccion que sale es su propia caja editable (.seg). Lo que el usuario escribe ahi se guarda
+     como el ajuste de la version elegida de esa seccion, igual que si lo escribiera en la
+     tarjeta, y la tarjeta se pone al dia en la misma tecla. Los marcadores se ven con su
+     valor pero son una pieza sola (contenteditable=false): al bajar el texto vuelven a ser
+     {MARCADOR}, asi el valor no queda escrito a mano. */
+  var outSegs = {}, costuras = {};
+  function htmlSalida(t){
+    var h = mdToHtml(t).replace(/(<div><br><\/div>)+/g, '<div class="gap"></div>');
+    return h.replace(MARCADOR, function(m, k){
+      var mk = DRAFT.marcadores[k];
+      if(!mk) return m;
+      return '<span class="mk" contenteditable="false" data-k="' + k +
+             '" title="{' + k + '}: se cambia desde el chat">' + esc(String(mk.valor)) + '</span>';
+    });
+  }
+  function linkificar(el){
+    el.querySelectorAll("div").forEach(function(d){
+      if(d.querySelector("[data-k]")) return;
+      var t = d.textContent.trim();
+      if(/^https?:\/\/\S+$/.test(t)){
+        var a = document.createElement("a");
+        a.href = t; a.textContent = t; a.rel = "noopener"; a.target = "_blank";
+        d.textContent = ""; d.appendChild(a);
+      }
+    });
+  }
+  /* La estructura (que secciones salen y cuales van pegadas) se rearma solo cuando cambia.
+     El texto de cada caja se repinta si no tiene el foco: asi escribir en una no la pisa. */
+  function pintarSalida(){
+    var vs = visibles(activo);
+    /* Se rearma solo si cambia que secciones salen. Pegar o despegar cambia clases en el
+       lugar: rearmar mientras el usuario escribe le saca el cursor de la caja. */
+    var clave = activo + "|" + vs.map(function(s){ return s.id; }).join(",");
+    if(outEl._clave !== clave){
+      outEl._clave = clave;
+      outEl.textContent = "";
+      outSegs = {}; costuras = {};
+      vs.forEach(function(s, i){
+        if(i > 0){
+          var cos = document.createElement("div"); cos.className = "costura";
+          var b = document.createElement("button"); b.type = "button";
+          b.title = "Pegar " + s.nombre + " al párrafo anterior";
+          b.setAttribute("aria-label", b.title);
+          b.addEventListener("click", function(){ unir(s, true); });
+          cos.appendChild(b); outEl.appendChild(cos);
+          costuras[s.id] = cos;
+        }
+        var seg = armarSeg(s);
+        outEl.appendChild(seg);
+        outSegs[s.id] = seg;
+      });
+    }
+    vs.forEach(function(s, i){
+      var seg = outSegs[s.id], sig = vs[i + 1], cos = costuras[s.id];
+      if(!seg) return;
+      var pg = pegada(activo, s);
+      seg.className = "seg" + (pg ? " pegada" : "") + (sig && pegada(activo, sig) ? " pega-sig" : "");
+      if(cos){
+        cos.hidden = pg;
+        cos.firstChild.hidden = !puedeUnir(activo, s);
+      }
+      if(document.activeElement === seg) return;
+      var t = rawOf(activo, s);
+      if(seg._md === t) return;
+      seg._md = t;
+      seg.innerHTML = htmlSalida(t);
+      linkificar(seg);
+    });
+  }
+  function armarSeg(s){
+    var seg = document.createElement("div");
+    seg.setAttribute("data-sec", s.id);
+    seg.setAttribute("contenteditable", "true");
+    seg.setAttribute("role", "textbox");
+    seg.setAttribute("aria-multiline", "true");
+    seg.setAttribute("aria-label", s.nombre + ", en lo que sale");
+    seg.addEventListener("input", function(ev){
+      if(marcando) return;
+      ultimaMarca = null;
+      var escribiendo = !ev.inputType || ev.inputType.indexOf("insert") === 0;
+      if(escribiendo){
+        if(!aplicarLista(seg)) aplicarInline(seg);
+        limpiarEstilos(seg);
+      }
+      tomarSalida(s, seg);
+      pronto("o:" + s.id, function(){ guardarSalida(s, seg); });
+    });
+    seg.addEventListener("blur", function(){
+      ultimaMarca = null;
+      clearTimeout(timers["o:" + s.id]);
+      guardarSalida(s, seg);
+    });
+    seg.addEventListener("keydown", function(ev){
+      if(costura(ev, s, seg)) return;
+      teclas(ev, seg, function(){ tomarSalida(s, seg); });
+    });
+    seg.addEventListener("paste", function(ev){ pegarTexto(ev, seg); });
+    return seg;
+  }
+  /* Baja lo escrito al estado y pone al dia la tarjeta de esa version. La tarjeta tiene que
+     quedar igual en la misma tecla: soltarPendientes lee el texto desde ella. */
+  function tomarSalida(s, seg){
+    if(!seg.isConnected || outSegs[s.id] !== seg) return;
+    var st = state[activo][s.id];
+    if(st.pick === "quitar" || !fijarEdicion(s, st.pick, domToMd(seg))) return;
+    var r = refs[s.id], p = r && r.txt[st.pick];
+    if(p && document.activeElement !== p) p.innerHTML = mdToHtml(rawOf(activo, s));
+  }
+  function guardarSalida(s, seg){
+    tomarSalida(s, seg);
+    if(sucio[activo + "|" + s.id]) pushSec(activo, s.id);
+    render();
+  }
+  /* El caret pegado al borde de la caja: nada escrito entre el caret y el principio (dir -1)
+     o el final (dir 1). */
+  function enBorde(seg, dir){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount || !sel.isCollapsed) return false;
+    var r = sel.getRangeAt(0), rr = document.createRange();
+    rr.selectNodeContents(seg);
+    if(dir < 0) rr.setEnd(r.startContainer, r.startOffset);
+    else rr.setStart(r.endContainer, r.endOffset);
+    return rr.toString().replace(ZW, "") === "";
+  }
+  /* Unir es borrar el espacio entre dos secciones, como en cualquier editor: Backspace al
+     principio de una la pega a la anterior, Delete al final de una pega la siguiente. Enter
+     al principio de una seccion pegada la vuelve a separar. */
+  function costura(ev, s, seg){
+    if(ev.metaKey || ev.ctrlKey || ev.altKey || ev.shiftKey) return false;
+    var vs = visibles(activo), i = vs.indexOf(s), sig = vs[i + 1];
+    if(ev.key === "Backspace" && !pegada(activo, s) && puedeUnir(activo, s) && enBorde(seg, -1)){
+      ev.preventDefault(); unir(s, true, s, false); return true;
+    }
+    if(ev.key === "Delete" && sig && !pegada(activo, sig) && puedeUnir(activo, sig) && enBorde(seg, 1)){
+      ev.preventDefault(); unir(sig, true, s, true); return true;
+    }
+    if(ev.key === "Enter" && pegada(activo, s) && enBorde(seg, -1)){
+      ev.preventDefault(); unir(s, false, s, false); return true;
+    }
+    return false;
+  }
+  /* foco/alFinal: en que caja y en que borde queda el caret despues de rearmar. */
+  function unir(s, si, foco, alFinal){
+    soltarPendientes();
+    state[activo][s.id].unida = si;
+    pushSec(activo, s.id);
+    render();
+    var seg = foco && outSegs[foco.id];
+    if(!seg) return;
+    seg.focus();
+    var r = document.createRange();
+    r.selectNodeContents(seg);
+    r.collapse(!alFinal);
+    var sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+  }
+
+  function envolverCodigo(){
+    var sel = window.getSelection();
+    if(!sel || !sel.rangeCount || sel.isCollapsed) return;
+    var t = sel.toString();
+    document.execCommand("insertHTML", false, "<code>" + esc(t) + "</code>\u200b");
+  }
+
+  /* Baja al estado (y a localStorage) lo que el usuario escribio en el DOM. No toca la base ni
+     repinta: eso lo decide el que llama. Devuelve true si el estado cambio.
+     Corre en cada tecla. Antes el texto vivia solo en el DOM hasta que el debounce o el blur
+     lo bajaban, y cualquier repintado de esos 1,2 s se llevaba la edicion puesta: pasaba al
+     clickear otra version, al cambiar de mensaje y al recargarse la pagina. */
+  function capturarEdicion(s, k, p){
+    if(state[activo][s.id].pick !== k) return false;
+    return fijarEdicion(s, k, domToMd(p));
+  }
+  function fijarEdicion(s, k, nuevo){
+    var st = state[activo][s.id], orig = s.opts[k].text.trim();
+    if(!nuevo || nuevo === orig){
+      /* Solo se borra la edicion de ESTA version: las demas versiones guardan la suya. */
+      if(!st.ediciones[k]) return false;
+      delete st.ediciones[k];
+    }else{
+      if(nuevo === st.ediciones[k]) return false;
+      st.ediciones[k] = nuevo;
+    }
+    saveLocal();
+    sucio[activo + "|" + s.id] = true;
+    return true;
+  }
+  /* Lo que corre mientras escribe: baja la edicion ya, y deja el push y el repintado para
+     1,2 s despues. */
+  function anotar(s, k, p){
+    if(capturarEdicion(s, k, p)) pintarSalida();
+    pronto("e:" + s.id, function(){ guardarEdicion(s, k, p); });
+  }
+  function guardarEdicion(s, k, p){
+    if(state[activo][s.id].pick !== k) return;
+    capturarEdicion(s, k, p);
+    /* sucio lo apaga pushSec, asi que se mira antes. */
+    var pintar = sucio[activo + "|" + s.id] || domToMd(p) !== rawOf(activo, s);
+    if(sucio[activo + "|" + s.id]) pushSec(activo, s.id);
+    if(pintar) render();
+  }
+  /* El push a la base sale con retraso para no escribir una vez por tecla. Toda accion que
+     cambie de version, de mensaje, o que lea el texto final tiene que soltarlo antes: si la
+     pagina se recarga con el push en el aire, la base contesta el texto viejo y le pisa la
+     edicion al usuario. */
+  function soltarPendientes(){
+    msgById[activo].secciones.forEach(function(s){
+      var r = refs[s.id];
+      if(!r) return;
+      var k = state[activo][s.id].pick, p = r.txt[k];
+      if(!p || p.getAttribute("contenteditable") !== "true") return;
+      clearTimeout(timers["e:" + s.id]);
+      capturarEdicion(s, k, p);
+      if(sucio[activo + "|" + s.id]) pushSec(activo, s.id);
+    });
+  }
+
+  function pintarChips(s){
+    var r = refs[s.id];
+    if(!r) return;
+    var hayNota = !!state[activo][s.id].nota.trim();
+    r.chipEdit.hidden = !edited(activo, s);
+    r.chipNote.hidden = !hayNota;
+    r.btnUndo.hidden = !edited(activo, s);
+    var pg = pegada(activo, s);
+    r.chipJoin.hidden = !pg;
+    r.btnSep.hidden = !pg;
+    r.btnNota.textContent = hayNota ? "Ver la nota" : "+ Nota";
+  }
+
+  /* Se guarda en mousedown para separar dos gestos que terminan igual: arrastrar para copiar
+     (la seleccion nace con este gesto) y clickear encima de algo que ya estaba seleccionado
+     (la seleccion es la de antes, y ahi si esta eligiendo la version). */
+  var selPrevia = "";
+  rowsEl.addEventListener("mousedown", function(){
+    var s = window.getSelection();
+    selPrevia = s ? s.toString() : "";
+  });
+  rowsEl.addEventListener("click", function(e){
+    var card = e.target.closest ? e.target.closest(".opt") : null;
+    if(!card || !rowsEl.contains(card)) return;
+    if(e.target.closest(".txt") && card.getAttribute("aria-pressed") === "true") return;
+    /* Arrastrar para copiar un pedazo de otra version no cambia la eleccion: si cambiara,
+       el repintado se lleva la seleccion antes de que el usuario llegue al Cmd+C. */
+    var sel = window.getSelection(), texto = sel ? sel.toString() : "";
+    if(texto && texto !== selPrevia && sel.anchorNode && card.contains(sel.anchorNode) &&
+       e.target.closest(".txt")) return;
+    var sid = card.getAttribute("data-sec"), k = card.getAttribute("data-opt");
+    if(state[activo][sid].pick === k) return;
+    soltarPendientes();
+    state[activo][sid].pick = k;
+    pushSec(activo, sid); render();
+  });
+  rowsEl.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    var card = e.target.closest ? e.target.closest(".opt") : null;
+    if(!card || e.target !== card) return;
+    e.preventDefault();
+    var sid = card.getAttribute("data-sec"), k = card.getAttribute("data-opt");
+    if(state[activo][sid].pick === k) return;
+    soltarPendientes();
+    state[activo][sid].pick = k;
+    pushSec(activo, sid); render();
+  });
+
+  /* ---------------- armado ---------------- */
+  var metaEl = document.getElementById("meta");
+  var attachWrap = document.getElementById("attach");
+  var attachList = document.getElementById("attach-list");
+  function pintarDestino(){
+    var m = MSG(), d = m.destino || {};
+    metaEl.textContent = "";
+    var lineas = [];
+    if(d.para) lineas.push("Para: " + d.para);
+    if(d.asunto) lineas.push("Asunto: " + d.asunto);
+    if(!lineas.length) lineas.push(C().eyebrow);
+    lineas.forEach(function(t){
+      var sp = document.createElement("span"); sp.textContent = t; metaEl.appendChild(sp);
+    });
+    attachList.textContent = "";
+    attachWrap.hidden = !(m.adjuntos && m.adjuntos.length);
+    (m.adjuntos || []).forEach(function(a){
+      var li = document.createElement("li");
+      var b = document.createElement("b"); b.textContent = a.nombre;
+      li.appendChild(b);
+      if(a.peso) li.appendChild(document.createTextNode(" · " + a.peso));
+      if(a.nota){
+        var sp = document.createElement("span"); sp.className = "why";
+        sp.textContent = " — " + a.nota; li.appendChild(sp);
+      }
+      attachList.appendChild(li);
+    });
+  }
+
+  var taGeneral = document.getElementById("nota-general");
+  taGeneral.addEventListener("input", function(){
+    general[activo].nota = taGeneral.value;
+    if(general[activo].listo && pendientes(activo)) general[activo].listo = false;
+    pintarPendientes(); pintarPrimario();
+    pronto("g", function(){ pushMsg(activo); });
+  });
+  taGeneral.addEventListener("blur", function(){
+    general[activo].nota = taGeneral.value;
+    clearTimeout(timers.g); pushMsg(activo); render();
+  });
+
+  var outEl = document.getElementById("out");
+  var tallyEl = document.getElementById("tally");
+  var deltaEl = document.getElementById("delta");
+  var recipeEl = document.getElementById("recipe");
+  var pendHead = document.getElementById("pending-head");
+  var pendBar = document.getElementById("pending-bar");
+
+  function pintarPendientes(){
+    var n = pendientes(activo);
+    pendHead.hidden = n === 0;
+    pendBar.hidden = n === 0;
+    if(n){
+      pendHead.querySelector("b").textContent = n;
+      pendHead.querySelector("span").textContent = n === 1 ? "nota sin atender" : "notas sin atender";
+      pendBar.textContent = n + (n === 1 ? " nota" : " notas");
+    }
+  }
+
+  /* ---------------- envío ---------------- */
+  var barActs = document.getElementById("bar-acts");
+  var btnPrimary = document.getElementById("primary");
+  var btnReset = document.getElementById("reset");
+  var copyBtn = document.getElementById("copy");
+  var pidiendoReset = false;
+  var sheet = null, scrim = null;
+
+  function dosD(n){ return ("0" + n).slice(-2); }
+  function isoLocal(d){
+    return d.getFullYear() + "-" + dosD(d.getMonth()+1) + "-" + dosD(d.getDate()) +
+           "T" + dosD(d.getHours()) + ":" + dosD(d.getMinutes()) + ":00";
+  }
+  var DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  var MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  function etiquetaFecha(d){
+    var hoy = new Date(), man = new Date(hoy.getTime() + 864e5);
+    var mismo = function(a,b){ return a.toDateString() === b.toDateString(); };
+    var hm = dosD(d.getHours()) + ":" + dosD(d.getMinutes());
+    if(mismo(d, hoy)) return "hoy a las " + hm;
+    if(mismo(d, man)) return "mañana a las " + hm;
+    return DIAS[d.getDay()] + " " + d.getDate() + " " + MESES[d.getMonth()] + " a las " + hm;
+  }
+  function diaA(base, h){
+    var d = new Date(base); d.setHours(h, 0, 0, 0); return d;
+  }
+  function masDias(n){ var d = new Date(); d.setDate(d.getDate() + n); return d; }
+  /* Los dias que el usuario manda correo (dias_envio en config.json, 0 = domingo). Los
+     demas quedan fuera de los botones. */
+  var DIAS_ENVIO = AJUSTES.diasEnvio || [1, 2, 3, 4, 5];
+  function habil(d){ return DIAS_ENVIO.indexOf(d.getDay()) >= 0; }
+  /* El proximo dia que sirve: si manana no es de envio, el atajo de arriba dice el siguiente. */
+  function proximoHabil(){
+    for(var i = 1; i < 8; i++){ var d = masDias(i); if(habil(d)) return d; }
+    return masDias(1);
+  }
+  function etiquetaDia(d){
+    return DIAS[d.getDay()] + " " + d.getDate() + " " + MESES[d.getMonth()];
+  }
+  function cap(t){ return t.charAt(0).toUpperCase() + t.slice(1); }
+  /* Horas de los botones. launchd no despierta la Mac: si el usuario tiene un despertar
+     diario con pmset, ventana_despierta (config.json) marca las horas cubiertas y fuera de
+     ella la hoja avisa. Sin ventana no se avisa aca: agendar.py mira pmset al agendar. */
+  var HORAS = [6, 7, 8, 9, 10, 11, 14, 16, 17], HORAS_ATAJO = [6, 7, 8, 9], HORA_DEFAULT = 8;
+  var VENTANA = AJUSTES.ventanaDespierta || null;
+  function fueraDeVentana(min){ return !!VENTANA && (min < VENTANA[0] || min > VENTANA[1]); }
+  function nomHora(h){ return h === 12 ? "12pm" : h > 12 ? (h - 12) + "pm" : h + "am"; }
+
+  /* La hora de envioSugerido del mensaje activo, o null si no vino o ya paso. */
+  function sugeridoVigente(){
+    var sg = MSG().envioSugerido, d = sg ? new Date(sg.cuando) : null;
+    return d && !isNaN(d.getTime()) && d > new Date() ? d : null;
+  }
+
+  function cerrarSheet(){
+    if(sheet){ sheet.remove(); sheet = null; }
+    if(scrim){ scrim.remove(); scrim = null; }
+  }
+  function abrirSheet(){
+    cerrarSheet();
+    scrim = document.createElement("div"); scrim.className = "scrim";
+    scrim.addEventListener("click", cerrarSheet);
+    document.body.appendChild(scrim);
+
+    sheet = document.createElement("div");
+    sheet.className = "sheet";
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-label", "Cuándo mandarlo");
+    sheet.addEventListener("keydown", function(ev){ if(ev.key === "Escape") cerrarSheet(); });
+    var h3 = document.createElement("h3");
+    h3.textContent = "¿Cuándo lo mando?";
+    sheet.appendChild(h3);
+
+    var IC = {
+      rayo:'<path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"></path>',
+      sol:'<circle cx="12" cy="14" r="4"></circle><path d="M12 4v2M5 9l1.5 1.5M19 9l-1.5 1.5M2 18h20"></path>',
+      reloj:'<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+      estrella:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"></path>',
+      chispa:'<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"></path>'
+    };
+    function fila(ico, titulo, sub, fn){
+      var b = document.createElement(fn ? "button" : "div");
+      b.className = "opt-row" + (fn ? "" : " opt-static");
+      if(fn){ b.type = "button"; }
+      var ic = document.createElement("span"); ic.className = "ic";
+      ic.innerHTML = '<svg viewBox="0 0 24 24">' + ico + '</svg>';
+      var tx = document.createElement("span");
+      tx.appendChild(document.createTextNode(titulo));
+      if(sub){ var sm = document.createElement("small"); sm.textContent = sub; tx.appendChild(sm); }
+      b.appendChild(ic); b.appendChild(tx);
+      if(fn) b.addEventListener("click", fn);
+      sheet.appendChild(b);
+      return b;
+    }
+    function agendar(d){
+      confirmarEnvio({modo:"programado", cuando:isoLocal(d), etiqueta:etiquetaFecha(d)});
+    }
+
+    /* El horario que recomendo Claude, si el borrador lo trae (envioSugerido) y todavia no paso.
+       Si recomendo mandarlo ya (cuando:"ahora"), esa fila reemplaza a "Enviar ahora". */
+    var sug = MSG().envioSugerido, dSug = sugeridoVigente(),
+        sugAhora = !!(sug && sug.cuando === "ahora");
+    if(sugAhora){
+      fila(IC.estrella, "Recomendado · Enviar ahora", sug.motivo || "Claude lo manda apenas lo vea",
+           function(){ confirmarEnvio({modo:"ahora", etiqueta:"de una vez", origen:"sugerido"}); })
+        .classList.add("sug");
+    }else if(dSug){
+      var filaSug = fila(IC.estrella, "Recomendado · " + etiquetaFecha(dSug), sug.motivo || null,
+                         function(){ confirmarEnvio({modo:"programado", cuando:isoLocal(dSug),
+                           etiqueta:etiquetaFecha(dSug), origen:"sugerido"}); });
+      filaSug.classList.add("sug");
+      var minSug = dSug.getHours() * 60 + dSug.getMinutes();
+      if(fueraDeVentana(minSug)){
+        var aw = document.createElement("small"); aw.className = "warn";
+        aw.textContent = "A esa hora la Mac tiene que estar prendida.";
+        filaSug.lastChild.appendChild(aw);
+      }
+    }
+
+    if(!sugAhora) fila(IC.rayo, "Enviar ahora", "Claude lo manda apenas lo vea",
+         function(){ confirmarEnvio({modo:"ahora", etiqueta:"de una vez"}); });
+
+    /* Delegar la hora: la sesion de Claude decide con el contexto del caso (modo "claude",
+       ver ENVIO.md paso 9). */
+    fila(IC.chispa, "Que Claude decida", "Lo manda o lo agenda según el caso, y te dice qué hizo",
+         function(){ confirmarEnvio({modo:"claude", etiqueta:"Claude decide cuándo"}); });
+
+    /* Atajo: el proximo dia habil temprano, en un click. */
+    var sig = proximoHabil();
+    var esManana = sig.toDateString() === masDias(1).toDateString();
+    var nomSig = esManana ? "Mañana" : cap(DIAS[sig.getDay()]);
+    var filaMan = fila(IC.sol, nomSig, etiquetaDia(sig), null);
+    filaMan.setAttribute("role", "group");
+    filaMan.setAttribute("aria-label", nomSig + " temprano: elegí la hora");
+    var chips = document.createElement("span"); chips.className = "horas";
+    HORAS_ATAJO.forEach(function(h){
+      var c = document.createElement("button");
+      c.type = "button"; c.textContent = nomHora(h);
+      if(h === HORA_DEFAULT) c.className = "def";
+      var d = diaA(sig, h);
+      c.title = cap(etiquetaFecha(d));
+      c.setAttribute("aria-label", c.title);
+      c.addEventListener("click", function(){ agendar(d); });
+      chips.appendChild(c);
+    });
+    filaMan.appendChild(chips);
+
+    var esc2 = document.createElement("button");
+    esc2.type = "button"; esc2.className = "opt-row cancel"; esc2.textContent = "Cancelar";
+    esc2.addEventListener("click", cerrarSheet);
+
+    /* Otro dia y hora: dos filas de botones (dia, hora) y una linea que dice que va a pasar.
+       "otra" abre el selector del navegador para la hora rara. */
+    var btnElegir = fila(IC.reloj, "Otro día y hora", null, function(){
+      btnElegir.classList.add("is-on");
+      if(sheet.querySelector(".pick")) return;
+      var pick = document.createElement("div"); pick.className = "pick";
+      var selDia = sig, selHora = HORA_DEFAULT, selMin = 0, otra = null;
+
+      function grupo(titulo){
+        var l = document.createElement("div"); l.className = "lbl"; l.textContent = titulo;
+        var g = document.createElement("div"); g.className = "chips"; g.setAttribute("role", "group");
+        g.setAttribute("aria-label", titulo);
+        pick.appendChild(l); pick.appendChild(g); return g;
+      }
+      var gDia = grupo("Día"), gHora = grupo("Hora");
+
+      /* Hoy (aunque no sea dia de envio) y los proximos 6 dias de envio. "otro" abre el calendario. */
+      var dias = [new Date()];
+      for(var i = 1; dias.length < 7 && i < 14; i++){ var x = masDias(i); if(habil(x)) dias.push(x); }
+      var bDias = dias.map(function(d, k){
+        var b = document.createElement("button"); b.type = "button";
+        var esMan = d.toDateString() === masDias(1).toDateString();
+        b.textContent = k === 0 ? "Hoy" : esMan ? "Mañana" : DIAS[d.getDay()].slice(0,3) + " " + d.getDate();
+        b.title = etiquetaDia(d);
+        b.addEventListener("click", function(){ otroDia = false; quitarFecha(); elegirDia(d); });
+        gDia.appendChild(b); return {b:b, d:d};
+      });
+      function elegirDia(d){
+        selDia = d;
+        /* Si en ese dia la hora elegida ya paso, salta a la primera de boton que sirva. */
+        if(elegido() <= new Date()){
+          var h = HORAS.filter(function(x){ return diaA(d, x) > new Date(); })[0];
+          if(h !== undefined){ selHora = h; selMin = 0; otra = null; quitarOtra(); }
+        }
+        pintar();
+      }
+      var otroDia = false, wf = null;
+      function quitarFecha(){ if(wf){ wf.remove(); wf = null; } }
+      var bOtro = document.createElement("button"); bOtro.type = "button"; bOtro.textContent = "otro";
+      gDia.appendChild(bOtro);
+      bOtro.addEventListener("click", function(){
+        if(wf) return;
+        wf = document.createElement("div"); wf.className = "when";
+        var f = document.createElement("input"); f.type = "date";
+        var hoyD = new Date();
+        f.min = hoyD.getFullYear() + "-" + dosD(hoyD.getMonth()+1) + "-" + dosD(hoyD.getDate());
+        f.value = selDia.getFullYear() + "-" + dosD(selDia.getMonth()+1) + "-" + dosD(selDia.getDate());
+        f.addEventListener("input", function(){
+          var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f.value);
+          if(m) elegirDia(new Date(+m[1], +m[2] - 1, +m[3]));
+        });
+        f.addEventListener("keydown", function(ev){ if(ev.key === "Enter") go.click(); });
+        wf.appendChild(f);
+        gDia.parentNode.insertBefore(wf, gDia.nextSibling);
+        otroDia = true; pintar(); f.focus();
+      });
+      var bHoras = HORAS.map(function(h){
+        var b = document.createElement("button"); b.type = "button"; b.textContent = nomHora(h);
+        b.addEventListener("click", function(){ selHora = h; selMin = 0; otra = null; quitarOtra(); pintar(); });
+        gHora.appendChild(b); return {b:b, h:h};
+      });
+      var bOtra = document.createElement("button"); bOtra.type = "button"; bOtra.textContent = "otra";
+      gHora.appendChild(bOtra);
+      var w = null;
+      function quitarOtra(){ if(w){ w.remove(); w = null; } }
+      bOtra.addEventListener("click", function(){
+        if(w) return;
+        w = document.createElement("div"); w.className = "when";
+        var t = document.createElement("input"); t.type = "time"; t.step = 300;
+        t.value = dosD(selHora) + ":" + dosD(selMin);
+        t.addEventListener("input", function(){
+          var m = /^(\d{2}):(\d{2})/.exec(t.value);
+          if(m){ selHora = +m[1]; selMin = +m[2]; }
+          pintar();
+        });
+        t.addEventListener("keydown", function(ev){ if(ev.key === "Enter") go.click(); });
+        w.appendChild(t);
+        pick.parentNode.insertBefore(w, resumen);
+        otra = true; pintar(); t.focus();
+      });
+
+      var resumen = document.createElement("div"); resumen.className = "resumen"; resumen.setAttribute("aria-live", "polite");
+      var go = document.createElement("button");
+      go.type = "button"; go.className = "btn primary go"; go.textContent = "Agendar";
+      go.addEventListener("click", function(){
+        var d = elegido(); if(d > new Date()) agendar(d);
+      });
+      function elegido(){ var d = new Date(selDia); d.setHours(selHora, selMin, 0, 0); return d; }
+
+      function pintar(){
+        var ahora = new Date(), esHoy = selDia.toDateString() === ahora.toDateString();
+        bDias.forEach(function(o){ o.b.classList.toggle("on", !otroDia && o.d.toDateString() === selDia.toDateString()); });
+        bOtro.classList.toggle("on", otroDia);
+        bHoras.forEach(function(o){
+          o.b.classList.toggle("on", !otra && o.h === selHora && selMin === 0);
+          o.b.disabled = esHoy && diaA(ahora, o.h) <= ahora;
+        });
+        bOtra.classList.toggle("on", !!otra);
+        var d = elegido(), min = selHora * 60 + selMin;
+        resumen.textContent = ""; resumen.classList.remove("mal");
+        if(d <= ahora){
+          resumen.classList.add("mal");
+          resumen.textContent = "Esa hora ya pasó. Elegí otra.";
+          go.disabled = true; return;
+        }
+        go.disabled = false;
+        resumen.textContent = "Sale " + etiquetaFecha(d);
+        if(fueraDeVentana(min)){
+          var sm = document.createElement("small");
+          sm.textContent = "A esa hora la Mac tiene que estar prendida.";
+          resumen.appendChild(sm);
+        }
+      }
+
+      sheet.insertBefore(pick, esc2);
+      sheet.insertBefore(resumen, esc2);
+      sheet.insertBefore(go, esc2);
+      pintar();
+      (bDias.filter(function(o){ return o.b.classList.contains("on"); })[0] || bDias[0]).b.focus();
+    });
+    sheet.appendChild(esc2);
+
+    document.body.appendChild(sheet);
+    sheet.querySelector("button.opt-row").focus();
+  }
+
+  function confirmarEnvio(e){
+    cerrarSheet();
+    e.ts = new Date().toISOString();
+    e.estado = "pedido";
+    e.canal = MSG().canal;
+    e.textoFinal = plainText(activo);
+    general[activo].envio = e;
+    general[activo].listo = true;
+    pushMsg(activo);
+    render();
+    confeti();
+    avisarClaude("envio " + (e.modo || ""), activo);
+  }
+  function horaDe(iso){
+    var d = new Date(iso);
+    return isNaN(d.getTime()) ? "" : dosD(d.getHours()) + ":" + dosD(d.getMinutes());
+  }
+  function desfase(mid){
+    var e = general[mid].envio;
+    if(!e || e.estado === "enviado") return false;
+    return plainText(mid) !== (e.textoFinal || "");
+  }
+  function actualizarEnvio(){
+    soltarPendientes();
+    var viejo = general[activo].envio;
+    if(!viejo || viejo.estado === "enviado") return;
+    /* Copia, no el objeto de la base: lo que llega por onSnapshot viene congelado y, en modo
+       estricto, escribirle un campo tira TypeError. El boton quedaba muerto sin decir nada
+       cada vez que el envio venia de la base y no de localStorage (2026-10-13). */
+    var e = {};
+    for(var k in viejo) e[k] = viejo[k];
+    e.textoFinal = plainText(activo);
+    e.actualizadoTs = new Date().toISOString();
+    if(e.estado !== "pedido") e.desfasado = true;
+    general[activo].envio = e;
+    pushMsg(activo);
+    render();
+    /* "pedido" es un envio que Claude todavia no tomo: si no se le avisa, sale con el texto
+       que tenga cuando le toque revisar, o no sale hasta la proxima vuelta. */
+    if(e.desfasado) avisarClaude("reagendar", activo);
+    else if(e.estado === "pedido") avisarClaude("envio " + (e.modo || ""), activo);
+  }
+  function cancelarEnvio(){
+    general[activo].envio = null;
+    general[activo].listo = false;
+    pushMsg(activo);
+    render();
+  }
+
+  /* La nota es UNA conversacion con Claude, no seis. En un hilo el boton cuenta las notas de
+     todos los mensajes y un solo click las cierra todas: lo que el boton dice no es que quiere,
+     dice CUANDO termino de pedirlo. Es lo unico de la barra que el guardado automatico no puede
+     deducir solo. El mensaje donde esta parado tambien se marca, porque puede haber revisado
+     los seis y dejado notas en dos. */
+  function conNotas(){
+    var t = [];
+    MSGS.forEach(function(m){ if(pendientes(m.id)) t.push(m.id); });
+    return t;
+  }
+  function hayNotas(){ return conNotas().length > 0; }
+  /* Lo que el boton MUESTRA se mide solo sobre los mensajes que tienen nota. Si tambien
+     contara el mensaje donde esta parado, cerrar el pedido en el 6 y despues abrir el 1
+     volveria a pedirle que lo cierre, para siempre. */
+  function notasListas(){
+    var t = conNotas();
+    for(var i = 0; i < t.length; i++) if(!general[t[i]].listo) return false;
+    return true;
+  }
+  /* Lo que el boton ESCRIBE si incluye el mensaje activo: el click tambien dice "con este
+     termine", aunque no le haya dejado nota. */
+  function objetivosNotas(){
+    var t = conNotas();
+    if(t.indexOf(activo) < 0) t.push(activo);
+    return t;
+  }
+
+  /* En un canal que Claude no manda, el copiado ES el cierre: es un acto deliberado y no
+     significa otra cosa que "me llevo este texto para usarlo". Escribe el mismo registro que
+     en email escribe "De una vez", asi que agendar.py y el paso 9 de SKILL.md no cambian. */
+  function marcarCopiado(txt){
+    var g = general[activo], nuevo = !g.envio;
+    g.envio = { estado:"pedido", modo:"ahora", etiqueta:"de una vez",
+                canal: MSG().canal, textoFinal: txt, ts: new Date().toISOString() };
+    g.listo = true;
+    pushMsg(activo);
+    render();
+    if(nuevo) confeti();
+  }
+
+  function resetear(){
+    pidiendoReset = false;
+    MSG().secciones.forEach(function(s){
+      state[activo][s.id].pick = s.recomendada;
+      state[activo][s.id].ediciones = {};
+      state[activo][s.id].unida = false;
+      pushSec(activo, s.id);
+    });
+    render();
+  }
+  function hayEdiciones(){
+    var ss = MSG().secciones;
+    for(var i = 0; i < ss.length; i++) if(edited(activo, ss[i]) || pegada(activo, ss[i])) return true;
+    return false;
+  }
+
+  function siguiente(){
+    var i = MSGS.indexOf(MSG());
+    return i >= 0 && i + 1 < MSGS.length ? MSGS[i + 1] : null;
+  }
+
+  /* Los tres elementos que dependen del estado se crean UNA vez y se prenden o apagan. Antes
+     se borraban y se volvian a crear en cada render, y un render disparado por el blur del
+     texto (mousedown -> blur -> render -> nodo nuevo) se comia el click que venia en camino:
+     "Actualizar el envio" y el ✕ del chip pedian dos clicks. */
+  /* La barra se reacomoda cuando el blur del texto baja una edicion pendiente ("Actualizar el
+     envio" aparece y corre todo hacia la izquierda), asi que entre el mousedown y el mouseup
+     el boton ya no esta abajo del cursor y el click nunca llega. Estos dos actuan en
+     pointerdown, que corre antes del blur, con guarda para no repetir con el click de atras. */
+  /* Un error adentro de fn se muestra en el cartel de arriba. Sin esto el boton queda
+     muerto sin decir nada: asi se escondio el TypeError de "Actualizar el envio" el
+     2026-10-13, y la consola de adentro del iframe no se ve desde afuera. */
+  function alApretar(btn, fn){
+    var ultimo = 0;
+    function correr(){
+      try{ fn(); }
+      catch(err){ marca("error: " + (err && err.message || err), true); }
+    }
+    btn.addEventListener("pointerdown", function(ev){
+      if(ev.button) return;
+      ultimo = Date.now();
+      correr();
+    });
+    btn.addEventListener("click", function(){
+      if(Date.now() - ultimo < 700) return;
+      correr();
+    });
+  }
+
+  var chipEl = null, chipTxt = null, chipX = null, updBtn = null, nextBtn = null, askEl = null;
+  function armarBarra(){
+    if(chipEl) return;
+    chipEl = document.createElement("span");
+    chipEl.className = "sent"; chipEl.id = "sent-chip"; chipEl.hidden = true;
+    chipTxt = document.createTextNode("");
+    chipX = document.createElement("button");
+    chipX.type = "button"; chipX.className = "x"; chipX.title = "Cancelar"; chipX.textContent = "✕";
+    alApretar(chipX, cancelarEnvio);
+    chipEl.appendChild(chipTxt); chipEl.appendChild(chipX);
+
+    updBtn = document.createElement("button");
+    updBtn.type = "button"; updBtn.className = "btn primary"; updBtn.id = "upd-envio";
+    updBtn.textContent = "Actualizar el envío"; updBtn.hidden = true;
+    updBtn.title = "Guardá en el envío los cambios que hiciste después de aprobar";
+    alApretar(updBtn, actualizarEnvio);
+
+    nextBtn = document.createElement("button");
+    nextBtn.type = "button"; nextBtn.className = "btn"; nextBtn.id = "next-msg";
+    nextBtn.textContent = "Siguiente mensaje →"; nextBtn.hidden = true;
+    nextBtn.addEventListener("click", function(){
+      var s = siguiente();
+      if(s) irA(s.id);
+    });
+
+    /* Un click de mas no le puede borrar un texto que escribio a mano. Vive en la misma
+       barra y no en un dialogo: la decision es de dos palabras y el boton esta ahi al lado. */
+    askEl = document.createElement("span");
+    askEl.className = "ask"; askEl.id = "reset-ask"; askEl.hidden = true;
+    askEl.appendChild(document.createTextNode("¿Borro tus ediciones?"));
+    var si = document.createElement("button");
+    si.type = "button"; si.className = "btn primary"; si.textContent = "Sí";
+    si.addEventListener("click", resetear);
+    var no = document.createElement("button");
+    no.type = "button"; no.className = "btn"; no.textContent = "No";
+    no.addEventListener("click", function(){ pidiendoReset = false; pintarPrimario(); });
+    askEl.appendChild(si); askEl.appendChild(no);
+
+    barActs.insertBefore(chipEl, barActs.firstChild);
+    barActs.insertBefore(updBtn, chipEl.nextSibling);
+    barActs.insertBefore(askEl, btnReset);
+    barActs.appendChild(nextBtn);
+  }
+
+  /* La barra solo ofrece lo que Claude puede ejecutar. En un canal que el no manda no hay
+     ningun boton de envio ni hoja de horarios: eso era ceremonia alrededor de un pbcopy. */
+  function pintarPrimario(){
+    armarBarra();
+    var g = general[activo], sig = HILO ? siguiente() : null;
+    var manda = C().manda, e = g.envio, n = hayNotas();
+
+    /* "Volver a lo recomendado" reescribe todos los picks del mensaje de una. Despues de
+       aprobar un envio eso deja el registro inconsistente sin que se note, asi que el boton
+       se esconde. El resto de la pagina sigue editable a proposito. */
+    if(e) pidiendoReset = false;
+    btnReset.hidden = !!e || pidiendoReset;
+    askEl.hidden = !pidiendoReset;
+
+    var stale = false;
+    if(e){
+      var est = e.estado, txt;
+      if(manda){
+        txt = est === "enviado" ? "Enviado"
+            : est === "confirmado" ? (e.modo === "ahora" ? "Claude lo está mandando" : "Agendado " + e.etiqueta)
+            : (e.modo === "ahora" ? "Pedido: mandarlo de una vez"
+              : e.modo === "claude" ? "Aprobado · Claude decide cuándo" : "Pedido: " + e.etiqueta);
+        if(est !== "enviado"){
+          if(e.desfasado){ txt += " · falta reagendar"; stale = true; }
+          else if(e.actualizadoTs) txt += " · actualizado " + horaDe(e.actualizadoTs);
+        }
+      }else{
+        /* Aca no hay nada esperando una hora: lo unico que puede salir mal es que siga
+           editando despues de haber pegado el texto, y eso se arregla copiando de nuevo. */
+        stale = est !== "enviado" && desfase(activo);
+        txt = est === "enviado" ? "Entregado"
+            : "Copiado " + horaDe(e.ts) +
+              (stale ? " · cambió, copialo otra vez" : " · lo tomo de acá");
+      }
+      chipTxt.nodeValue = txt;
+      chipEl.classList.toggle("is-stale", stale);
+      chipX.hidden = est === "enviado";
+      chipEl.hidden = false;
+    }else{
+      chipEl.hidden = true;
+      chipEl.classList.remove("is-stale");
+    }
+
+    /* "Actualizar el envio" existe solo donde hay un .eml esperando una hora. */
+    var hayUpd = !!e && manda && desfase(activo);
+    updBtn.hidden = !hayUpd;
+
+    var caraNotas = n && !notasListas();
+    if(n){
+      btnPrimary.hidden = false;
+      btnPrimary.textContent = caraNotas ? "Pedir cambios" : "Pedido ✓";
+      btnPrimary.title = "Avisale a Claude que ya dejaste tus notas" + (HILO ? " en el hilo" : "");
+    }else if(manda && !e){
+      btnPrimary.hidden = false;
+      btnPrimary.textContent = "Aprobar";
+      btnPrimary.title = "Elegir cuándo sale: ahora, que Claude decida, o un día y hora";
+    }else{
+      btnPrimary.hidden = true;
+    }
+
+    /* El boton de avanzar no espera a que el mensaje este listo: revisar los seis y decidir
+       despues es el uso normal de un hilo. */
+    nextBtn.hidden = !sig;
+
+    /* Un solo principal a la vez, por prioridad. */
+    var principal = caraNotas ? "notas"
+                  : hayUpd    ? "upd"
+                  : sig       ? "next"
+                  : (!n && manda && !e)             ? "envio"
+                  : (!n && !manda && (!e || stale)) ? "copiar" : "";
+    var claseP = "btn";
+    if(n) claseP += caraNotas ? " primary" : " ghost-done";
+    else if(principal === "envio") claseP += " primary";
+    btnPrimary.className = claseP;
+    updBtn.className   = "btn" + (principal === "upd"    ? " primary" : "");
+    nextBtn.className  = "btn" + (principal === "next"   ? " primary" : "");
+    copyBtn.className  = "btn" + (principal === "copiar" ? " primary" : "");
+    copyBtn.title = principal === "copiar"
+      ? "Copialo y lo doy por cerrado" : "Copiar el mensaje al portapapeles";
+  }
+
+  btnPrimary.addEventListener("click", function(){
+    soltarPendientes();
+    if(!hayNotas()){ abrirSheet(); return; }
+    var objetivos = objetivosNotas(), marcar = !notasListas();
+    objetivos.forEach(function(mid){
+      /* Al desmarcar no se tocan los mensajes ya aprobados: ahi listo:true lo puso el envio. */
+      if(!marcar && general[mid].envio) return;
+      general[mid].listo = marcar;
+      pushMsg(mid);
+    });
+    render();
+    if(marcar){ acuse(btnPrimary); avisarClaude("cambios", activo); }
+  });
+
+  /* ---------------- render ---------------- */
+  function render(){
+    var m = MSG();
+    pintarCabeza();
+    pintarHilo();
+
+    m.secciones.forEach(function(s){
+      var r = refs[s.id], st = state[activo][s.id];
+      if(!r) return;
+      r.card.querySelectorAll(".opt").forEach(function(card){
+        var ko = card.getAttribute("data-opt");
+        card.setAttribute("aria-pressed", ko === st.pick ? "true" : "false");
+        if(ko !== "quitar"){
+          var ed = st.ediciones[ko];
+          card.querySelector(".wc").textContent = words(ed || s.opts[ko].text) + " pal." + (ed ? " · editada" : "");
+        }
+      });
+      KEYS.forEach(function(k){
+        var p = r.txt[k];
+        if(!p) return;
+        var activoEl = document.activeElement === p;
+        if(k === st.pick){
+          if(p.getAttribute("contenteditable") !== "true") p.setAttribute("contenteditable", "true");
+          if(!activoEl){
+            var t = rawOf(activo, s);
+            if(domToMd(p) !== t) p.innerHTML = mdToHtml(t);
+          }
+        }else{
+          p.removeAttribute("contenteditable");
+          if(!activoEl){
+            var v = st.ediciones[k] || view(s.opts[k].text);
+            if(domToMd(p) !== v) p.innerHTML = mdToHtml(v);
+          }
+        }
+      });
+      if(document.activeElement !== r.nota && r.nota.value !== st.nota) r.nota.value = st.nota;
+      if(st.nota.trim() && r.box.hidden) r.box.hidden = false;
+      var marcas = [];
+      if(st.pick !== "quitar"){
+        s.opts[st.pick].text.replace(MARCADOR, function(mm, k){
+          var mk = DRAFT.marcadores[k];
+          if(mk) marcas.push("{" + k + "} = " + mk.valor);
+          return mm;
+        });
+      }
+      r.hint.hidden = marcas.length === 0;
+      r.hint.textContent = marcas.join("   ");
+      pintarChips(s);
+    });
+
+    if(document.activeElement !== taGeneral && taGeneral.value !== general[activo].nota)
+      taGeneral.value = general[activo].nota;
+
+    pintarSalida();
+    var txt = plainText(activo);
+
+    var w = sinMarcas(txt).trim().split(/\s+/).filter(Boolean).length;
+    var base0 = versionWords("completa");
+    tallyEl.textContent = w;
+    var dd = w - base0;
+    deltaEl.textContent = dd === 0 ? "igual que la completa"
+                        : (dd < 0 ? dd + " vs. la completa" : "+" + dd + " vs. la completa");
+    recipeEl.textContent = m.secciones.map(function(s){
+      return (pegada(activo, s) ? "+" : "") + s.id + ":" + state[activo][s.id].pick + (edited(activo, s) ? "*" : "");
+    }).join("  ");
+    pintarPendientes();
+    pintarPrimario();
+  }
+
+  /* ---------------- barra ---------------- */
+  btnReset.addEventListener("click", function(){
+    soltarPendientes();
+    if(hayEdiciones()){ pidiendoReset = true; pintarPrimario(); return; }
+    resetear();
+  });
+
+  copyBtn.addEventListener("click", function(){
+    soltarPendientes();
+    var txt = plainText(activo);
+    var listo = function(msg){
+      copyBtn.textContent = msg;
+      setTimeout(function(){ copyBtn.textContent = "Copiar"; }, 2000);
+    };
+    try{
+      navigator.clipboard.writeText(txt).then(function(){ listo("Copiado"); },
+                                              function(){ seleccionar(listo); });
+    }catch(err){ seleccionar(listo); }
+    /* Si hay notas sin atender, copiar solo copia: mandan las notas. */
+    if(!C().manda && !pendientes(activo)) marcarCopiado(txt);
+  });
+
+  function seleccionar(listo){
+    try{
+      var r = document.createRange(); r.selectNodeContents(outEl);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      outEl.scrollIntoView({block:"center"});
+      listo("Seleccionado, Cmd+C");
+    }catch(e){ listo("Copialo del recuadro"); }
+  }
+
+  var mPick = document.getElementById("m-pick"), mRead = document.getElementById("m-read");
+  function setMode(leyendo){
+    mPick.setAttribute("aria-pressed", leyendo ? "false" : "true");
+    mRead.setAttribute("aria-pressed", leyendo ? "true" : "false");
+    rowsEl.hidden = leyendo;
+    fullsEl.hidden = !leyendo;
+  }
+  mPick.addEventListener("click", function(){ setMode(false); });
+  mRead.addEventListener("click", function(){ setMode(true); });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && sheet){ e.preventDefault(); cerrarSheet(); return; }
+    var cmd = e.metaKey || e.ctrlKey;
+    if(!cmd) return;
+    if(e.shiftKey && e.key.toLowerCase() === "l"){ e.preventDefault(); alternarTema(); return; }
+    if(e.key === "Enter"){ e.preventDefault(); btnPrimary.click(); return; }
+  });
+
+  /* Si la pagina se va (recarga, pestana escondida, artifact cerrado) la edicion en curso
+     tiene que quedar escrita antes. */
+  window.addEventListener("pagehide", soltarPendientes);
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden) soltarPendientes();
+  });
+
+  construir();
+  render();
+  conectar();
+})();
+</script>

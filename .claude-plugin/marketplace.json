@@ -1,7 +1,11 @@
 {
   "name": "ramo-plugins",
-  "owner": { "name": "Daniel Ramírez" },
-  "metadata": { "description": "Skills de Ramo: transcripción con ElevenLabs Scribe, y /watch para preguntarle cosas a un video." },
+  "owner": {
+    "name": "Daniel Ramírez"
+  },
+  "metadata": {
+    "description": "Skills de Ramo: transcripción con ElevenLabs Scribe, /watch para preguntarle cosas a un video y /versiones para armar mensajes en tres largos."
+  },
   "plugins": [
     {
       "name": "transcribe",
@@ -12,8 +16,17 @@
     {
       "name": "watch",
       "description": "Mira un video (URL o archivo) y responde preguntas sobre él. Plugin de Bradley Bonanno.",
-      "source": { "source": "url", "url": "https://github.com/bradautomates/claude-video.git" },
+      "source": {
+        "source": "url",
+        "url": "https://github.com/bradautomates/claude-video.git"
+      },
       "homepage": "https://github.com/bradautomates/claude-video",
+      "category": "productivity"
+    },
+    {
+      "name": "versiones",
+      "description": "Arma un mensaje (correo, WhatsApp, DM) en tres largos y lo publica en una página donde eliges, editas y copias. Opcional: envío programado por Gmail.",
+      "source": "./plugins/versiones",
       "category": "productivity"
     }
   ]

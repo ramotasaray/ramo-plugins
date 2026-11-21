@@ -1,0 +1,7 @@
+{
+  "name": "versiones",
+  "description": "Arma un mensaje transaccional en tres largos por sección y lo publica como página para elegir, editar, copiar o agendar el envío del correo.",
+  "version": "1.0.0",
+  "author": { "name": "Daniel Ramírez" },
+  "license": "MIT"
+}
