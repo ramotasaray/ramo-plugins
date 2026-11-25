@@ -86,15 +86,17 @@ def shrink_audio(src: Path, out_path: Path) -> Path:
     return out_path
 
 
-def _build_multipart(fields: dict[str, str], file_path: Path) -> tuple[bytes, str]:
+def _build_multipart(fields: dict[str, str | list[str]], file_path: Path) -> tuple[bytes, str]:
     boundary = f"----ScribeBoundary{uuid.uuid4().hex}"
     eol = b"\r\n"
     buf = io.BytesIO()
     for name, value in fields.items():
-        buf.write(f"--{boundary}".encode()); buf.write(eol)
-        buf.write(f'Content-Disposition: form-data; name="{name}"'.encode()); buf.write(eol)
-        buf.write(eol)
-        buf.write(str(value).encode()); buf.write(eol)
+        # Una lista se manda como campo repetido (asi lo pide Scribe para keyterms).
+        for item in (value if isinstance(value, list) else [value]):
+            buf.write(f"--{boundary}".encode()); buf.write(eol)
+            buf.write(f'Content-Disposition: form-data; name="{name}"'.encode()); buf.write(eol)
+            buf.write(eol)
+            buf.write(str(item).encode()); buf.write(eol)
     mimetype = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
     buf.write(f"--{boundary}".encode()); buf.write(eol)
     buf.write(f'Content-Disposition: form-data; name="file"; filename="{file_path.name}"'.encode())
@@ -107,7 +109,7 @@ def _build_multipart(fields: dict[str, str], file_path: Path) -> tuple[bytes, st
     return buf.getvalue(), boundary
 
 
-def _post(api_key: str, audio_path: Path, fields: dict[str, str]) -> dict:
+def _post(api_key: str, audio_path: Path, fields: dict[str, str | list[str]]) -> dict:
     body, boundary = _build_multipart(fields, audio_path)
     headers = {
         "xi-api-key": api_key,
@@ -171,7 +173,7 @@ def transcribe(
               file=sys.stderr)
         upload = shrink_audio(src, target)
 
-    fields: dict[str, str] = {"model_id": MODEL}
+    fields: dict[str, str | list[str]] = {"model_id": MODEL}
     if diarize:
         fields["diarize"] = "true"
         if speakers:
@@ -179,7 +181,7 @@ def transcribe(
     if language:
         fields["language_code"] = language
     if keyterms:
-        fields["keyterms"] = json.dumps(keyterms, ensure_ascii=False)
+        fields["keyterms"] = keyterms
 
     print(f"[scribe] subiendo {upload.stat().st_size / 1024:.0f} kB a Scribe v2...",
           file=sys.stderr)
